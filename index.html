@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>快樂學聖經 (空間優化版)</title>
+    <title>快樂學聖經 (自適應版)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -24,32 +24,38 @@
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
             color: var(--text-color);
+            /* 改動 1: 讓 body 佔滿全螢幕高度，防止整體頁面滾動 */
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
             margin: 0;
-            padding: 10px; /* 減少外部邊距 */
+            padding: 0; /* 移除 padding，完全交給內部控制 */
+        }
+
+        .game-container {
+            width: 95%; /* 手機上留一點邊就好 */
+            max-width: 600px;
+            /* 改動 2: 高度改為螢幕的 92%，上下留白，中間自動撐開 */
+            height: 92vh; 
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 24px;
+            box-shadow: 0 5px 0 rgba(255, 143, 163, 0.3);
+            border: 3px solid #fff;
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            gap: 8px; 
             box-sizing: border-box;
             position: relative;
         }
 
-        .game-container {
-            max-width: 600px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            /* 優化：減少內部邊距，讓內容更靠邊 */
-            padding: 15px; 
-            border-radius: 24px;
-            box-shadow: 0 8px 0 rgba(255, 143, 163, 0.3);
-            border: 3px solid #fff;
-            display: flex;
-            flex-direction: column;
-            /* 優化：收緊元素間距 */
-            gap: 10px; 
-            transition: height 0.3s;
-            margin-bottom: 30px;
+        /* 頂部區域 (固定高度) */
+        .header-section {
+            flex: 0 0 auto; /* 不會縮放 */
         }
 
         .hud {
@@ -57,9 +63,10 @@
             justify-content: space-between;
             align-items: center;
             background: #fff5f7;
-            padding: 8px 15px; /* 優化：變扁一點 */
+            padding: 6px 15px;
             border-radius: 15px;
             border: 2px dashed var(--primary-pink);
+            margin-bottom: 5px;
         }
 
         .lives { font-size: 1.2rem; letter-spacing: 2px; }
@@ -70,19 +77,17 @@
             background: #fff;
             padding: 4px 12px;
             border-radius: 12px;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.05);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.05);
         }
 
         .verse-card {
             text-align: center;
-            margin-bottom: 2px;
             min-height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* 優化：字體改小一點，節省頭部空間 */
         .verse-ref {
             font-size: 1.4rem; 
             font-weight: 900;
@@ -95,29 +100,48 @@
         .zone-label {
             color: var(--primary-pink);
             font-weight: 700;
-            margin-left: 8px;
-            font-size: 0.9rem; /* 字體改小 */
-            margin-bottom: 4px;
+            margin-left: 5px;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
         }
 
+        /* --- 改動 3: 核心佈局調整 (Flex Grow) --- */
+        
+        /* 包裹「你的排列」區域 */
+        .answer-section {
+            flex: 1; /* 分配 1 份空間 (會自動拉伸) */
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* 關鍵：允許 flex 子元素滾動 */
+        }
+
+        /* 包裹「詞語積木」區域 */
+        .option-section {
+            flex: 1; /* 分配 1 份空間 (會自動拉伸，與上面均分) */
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        /* 共用的格子樣式 */
         .zone {
+            flex: 1; /* 佔滿父容器的高度 */
             border-radius: 16px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-content: flex-start;
-            gap: 8px; /* 優化：積木間距改小 */
-            overflow-y: auto;
-            transition: all 0.3s;
+            align-content: flex-start; /* 內容靠上 */
+            gap: 8px;
             padding: 10px;
+            overflow-y: auto; /* 內容多時才滾動 */
+            /* 優化滾動條體驗 */
+            -webkit-overflow-scrolling: touch;
         }
 
-        .zone::-webkit-scrollbar { width: 6px; }
+        .zone::-webkit-scrollbar { width: 5px; }
         .zone::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 3px; }
 
-        /* 優化：答案區改矮一點 (110px)，因為一開始是空的 */
         .answer-zone {
-            height: 110px; 
             background-color: #f7f9fc;
             border: 2px solid #dfe4ea;
         }
@@ -125,20 +149,17 @@
         .answer-zone.correct { background-color: #daffea; border-color: var(--success-color); }
         .answer-zone.wrong { background-color: #ffe0e6; border-color: var(--primary-dark); animation: shake 0.4s; }
 
-        /* 優化：選項區改高一點 (180px)，讓更多積木不用滑動就看得到 */
         .option-zone {
-            height: 180px; 
             background-color: #fff0f3;
             border: 2px dashed var(--primary-pink);
         }
 
-        /* 優化：積木瘦身 */
+        /* 積木樣式 */
         .word-brick {
             background: #fff;
             border: 2px solid var(--primary-pink);
-            border-bottom: 4px solid var(--primary-pink); /* 稍微變薄 */
+            border-bottom: 4px solid var(--primary-pink);
             border-radius: 12px;
-            /* 優化：內邊距改小，字體改小，這樣一行能塞更多字 */
             padding: 8px 12px; 
             font-size: 0.95rem; 
             font-weight: 700;
@@ -157,16 +178,21 @@
         
         .word-brick:hover { background-color: #fff5f7; }
 
+        /* 底部控制區 (固定高度) */
+        .footer-section {
+            flex: 0 0 auto;
+            margin-top: 5px;
+        }
+
         .controls {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 10px;
-            margin-top: 5px;
         }
 
         .btn {
             border: none;
-            padding: 12px; /* 按鈕稍微變扁 */
+            padding: 12px;
             font-size: 1.1rem;
             font-weight: 900;
             border-radius: 20px;
@@ -174,7 +200,6 @@
             color: white;
             font-family: 'Zen Maru Gothic', sans-serif;
             box-shadow: 0 4px 0 rgba(0,0,0,0.1);
-            transition: all 0.1s;
         }
 
         .btn:active { transform: translateY(4px); box-shadow: none; }
@@ -183,117 +208,77 @@
         .btn-submit:hover { filter: brightness(1.05); }
         .btn:disabled { background: #dfe4ea; color: #a4b0be; box-shadow: none; transform: translateY(4px); }
 
-        #messageArea { min-height: 25px; text-align: center; }
-        .msg-text { font-size: 1rem; font-weight: 700; margin: 2px 0; }
+        #messageArea { min-height: 20px; text-align: center; }
+        .msg-text { font-size: 0.9rem; font-weight: 700; margin: 2px 0; }
 
         .correction-box {
             display: none;
             background: #fffbeb;
             border: 2px solid #f1c40f;
             color: #d35400;
-            padding: 10px;
+            padding: 8px;
             border-radius: 12px;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
-            margin-top: 5px;
+            margin-bottom: 5px; /* 放在中間時 */
             animation: popIn 0.4s;
         }
         
-        .correction-title { font-size: 0.85rem; color: #f39c12; margin-bottom: 2px; display: block; }
-        .answer-placeholder { width: 100%; text-align: center; color: #bdc3c7; margin-top: 40px; font-weight: 700; font-size: 0.9rem; }
+        .answer-placeholder { width: 100%; text-align: center; color: #bdc3c7; margin-top: 20px; font-weight: 700; font-size: 0.9rem; }
 
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 999;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 30px;
-            text-align: center;
-            width: 85%;
-            max-width: 350px;
-            border: 5px solid var(--primary-pink);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            animation: popIn 0.3s;
-        }
-
-        .watermark {
-            position: fixed;
-            bottom: 5px;
-            right: 10px;
-            text-align: right;
-            font-size: 0.75rem;
-            color: var(--primary-dark);
-            opacity: 0.6;
-            font-weight: 700;
-            z-index: 100;
-            pointer-events: none; 
-        }
+        /* 彈窗與水印 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-pink); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
         
-        .watermark span { display: block; font-size: 0.65rem; font-weight: 400; }
+        .watermark { position: fixed; bottom: 5px; right: 10px; text-align: right; font-size: 0.7rem; color: var(--primary-dark); opacity: 0.6; font-weight: 700; z-index: 100; pointer-events: none; }
+        .watermark span { display: block; font-size: 0.6rem; font-weight: 400; }
 
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
-        /* 手機版特別優化 (iPhone 尺寸) */
-        @media (max-width: 480px) {
-            .game-container { padding: 12px; gap: 8px; }
-            .verse-ref { font-size: 1.3rem; }
-            .zone { gap: 6px; padding: 8px; }
-            .word-brick { padding: 6px 10px; font-size: 0.9rem; border-radius: 10px; }
-            .option-zone { height: 200px; } /* 手機上讓選項區再高一點 */
-        }
     </style>
 </head>
 <body>
 
 <div class="game-container">
-    <div class="hud">
-        <div class="lives" id="livesDisplay">❤️❤️❤️❤️❤️</div>
-        <div class="score-board" id="scoreDisplay">星星: 0</div>
+    <div class="header-section">
+        <div class="hud">
+            <div class="lives" id="livesDisplay">❤️❤️❤️❤️❤️</div>
+            <div class="score-board" id="scoreDisplay">星星: 0</div>
+    </div>
+        <div class="verse-card">
+            <div class="verse-ref" id="referenceDisplay">正在載入金句...</div>
+        </div>
+        <div id="correctionBox" class="correction-box">
+            <span>💡 正確答案：</span><span id="correctionText"></span>
+    </div>
     </div>
 
-    <div class="verse-card">
-        <div class="verse-ref" id="referenceDisplay">正在載入金句...</div>
-    </div>
-
-    <div id="correctionBox" class="correction-box">
-        <span class="correction-title">💡 正確答案是：</span>
-        <span id="correctionText"></span>
-    </div>
-
-    <div>
+    <div class="answer-section">
         <div class="zone-label">☁️ 你的排列</div>
         <div class="zone answer-zone" id="answerZone"></div>
     </div>
 
-    <div>
+    <div class="option-section">
         <div class="zone-label">🌸 詞語積木</div>
         <div class="zone option-zone" id="optionZone"></div>
     </div>
 
-    <div id="messageArea">
-        <div class="msg-text" id="message"></div>
-    </div>
-
-    <div class="controls">
-        <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重來</button>
-        <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>載入中...</button>
+    <div class="footer-section">
+        <div id="messageArea">
+            <div class="msg-text" id="message"></div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重來</button>
+            <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>載入中...</button>
+        </div>
     </div>
 </div>
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.5 (Compact) | 2025.12.26</span>
+    <span>Ver 5.6 (Flex Layout) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -305,9 +290,9 @@
 </div>
 
 <script>
+    // JS 邏輯與之前完全相同，無需改動
     const DATA_URL = 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
     let versesData = []; 
-
     let currentScore = 0;
     let lives = 5; 
     let currentVerseIndex = 0;
@@ -318,51 +303,31 @@
     async function loadVersesFromFile() {
         const refDisplay = document.getElementById('referenceDisplay');
         const checkBtn = document.getElementById('checkBtn');
-        
         try {
             refDisplay.innerText = "正在連線到金句庫...";
-            
             const response = await fetch(DATA_URL + '?t=' + new Date().getTime());
             if (!response.ok) throw new Error('網路回應錯誤');
-            
             const text = await response.text();
-            
             const lines = text.split('\n');
             versesData = [];
-
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
-
                 const parts = line.split(':');
-                
                 if (parts.length >= 2) {
                     let ref = parts[0].trim();
                     let contentStartIndex = 1;
-
                     if (parts.length > 2 && /^\s*[\d\-\,\s]+\s*$/.test(parts[1])) {
                         ref += ":" + parts[1].trim(); 
                         contentStartIndex = 2;
                     }
-
                     const contentRaw = parts.slice(contentStartIndex).join(':').trim();
-                    
-                    const segments = contentRaw.split('/')
-                        .map(s => s.trim())
-                        .filter(s => s.length > 0);
-
-                    if (segments.length > 1) {
-                        versesData.push({ ref, segments });
-                    }
+                    const segments = contentRaw.split('/').map(s => s.trim()).filter(s => s.length > 0);
+                    if (segments.length > 1) versesData.push({ ref, segments });
                 }
             });
-
-            if (versesData.length === 0) {
-                throw new Error('找不到有效的金句資料');
-            }
-
+            if (versesData.length === 0) throw new Error('找不到有效的金句資料');
             console.log(`成功載入 ${versesData.length} 句金句。`);
             initGame();
-
         } catch (error) {
             console.error("載入失敗:", error);
             refDisplay.innerText = "⚠️ 金句載入失敗";
@@ -383,22 +348,17 @@
 
     function loadLevel() {
         const verseObj = versesData[currentVerseIndex % versesData.length];
-        
         document.getElementById('referenceDisplay').innerText = verseObj.ref;
         showMessage("");
         hideCorrection();
-        
         document.getElementById('answerZone').className = "zone answer-zone";
-        
         const checkBtn = document.getElementById('checkBtn');
         checkBtn.innerText = "完成！";
         checkBtn.onclick = checkAnswer;
         checkBtn.style.background = "var(--primary-pink)";
-
         currentSegments = [...verseObj.segments];
         shuffledSegments = [...verseObj.segments];
         playerAnswer = [];
-        
         shuffleArray(shuffledSegments);
         renderZones();
     }
@@ -413,31 +373,22 @@
         const answerZone = document.getElementById('answerZone');
         const optionZone = document.getElementById('optionZone');
         const resetBtn = document.getElementById('resetBtn');
-
         answerZone.innerHTML = '';
         optionZone.innerHTML = '';
-
         if (playerAnswer.length === 0) {
             answerZone.innerHTML = '<div class="answer-placeholder">把詞語拉到這裡喔！</div>';
             resetBtn.disabled = true;
         } else {
             resetBtn.disabled = false;
         }
-
-        playerAnswer.forEach((text, index) => {
-            answerZone.appendChild(createBrick(text, true, index));
-        });
-
-        shuffledSegments.forEach((text, index) => {
-            optionZone.appendChild(createBrick(text, false, index));
-        });
+        playerAnswer.forEach((text, index) => { answerZone.appendChild(createBrick(text, true, index)); });
+        shuffledSegments.forEach((text, index) => { optionZone.appendChild(createBrick(text, false, index)); });
     }
 
     function createBrick(text, isAnswerZone, index) {
         let div = document.createElement('div');
         div.className = 'word-brick';
         div.innerText = text;
-        
         div.onclick = function() {
             if (isAnswerZone) {
                 const word = playerAnswer[index];
@@ -454,80 +405,43 @@
     }
 
     function checkAnswer() {
-        if (playerAnswer.length === 0) {
-             showMessage("還沒選詞語喔！加油！", "#ffa502");
-             return;
-        }
-
+        if (playerAnswer.length === 0) { showMessage("還沒選詞語喔！加油！", "#ffa502"); return; }
         let isCorrect = true;
         if (playerAnswer.length !== currentSegments.length) isCorrect = false;
         else {
             for (let i = 0; i < currentSegments.length; i++) {
-                if (playerAnswer[i] !== currentSegments[i]) {
-                    isCorrect = false;
-                    break;
-                }
+                if (playerAnswer[i] !== currentSegments[i]) { isCorrect = false; break; }
             }
         }
-
         const answerZone = document.getElementById('answerZone');
         const checkBtn = document.getElementById('checkBtn');
-
         if (isCorrect) {
             currentScore++;
             answerZone.classList.add('correct');
             showMessage("🎉 哇！你答對了！太棒了！", "#2ed573");
             hideCorrection();
-            
             checkBtn.innerText = "下一關 ➔";
             checkBtn.style.background = "#2ed573"; 
             checkBtn.onclick = nextLevel;
-            
             triggerConfetti();
-
         } else {
             lives--;
             answerZone.classList.add('wrong');
             showMessage("哎呀，順序不對，正確答案是：", "#ff4757");
             updateUI();
-            
             showCorrection(currentSegments.join(''));
-
             checkBtn.innerText = "下一題 ➔";
             checkBtn.style.background = "#ff4757"; 
             checkBtn.onclick = nextLevel; 
-
-            setTimeout(() => {
-                answerZone.classList.remove('wrong');
-            }, 1000);
-
-            if (lives <= 0) {
-                showModal("遊戲結束", `你獲得了 <b>${currentScore}</b> 顆星星！<br>休息一下再來挑戰！`, "重新開始");
-            }
+            setTimeout(() => { answerZone.classList.remove('wrong'); }, 1000);
+            if (lives <= 0) showModal("遊戲結束", `你獲得了 <b>${currentScore}</b> 顆星星！<br>休息一下再來挑戰！`, "重新開始");
         }
     }
 
-    function nextLevel() {
-        currentVerseIndex++;
-        loadLevel();
-        updateUI();
-    }
-
-    function showCorrection(text) {
-        document.getElementById('correctionText').innerText = text;
-        document.getElementById('correctionBox').style.display = 'block';
-    }
-
-    function hideCorrection() {
-        document.getElementById('correctionBox').style.display = 'none';
-    }
-
-    function showMessage(text, color) {
-        const msg = document.getElementById('message');
-        msg.innerText = text;
-        msg.style.color = color || 'var(--text-color)';
-    }
-
+    function nextLevel() { currentVerseIndex++; loadLevel(); updateUI(); }
+    function showCorrection(text) { document.getElementById('correctionText').innerText = text; document.getElementById('correctionBox').style.display = 'block'; }
+    function hideCorrection() { document.getElementById('correctionBox').style.display = 'none'; }
+    function showMessage(text, color) { const msg = document.getElementById('message'); msg.innerText = text; msg.style.color = color || 'var(--text-color)'; }
     function updateUI() {
         let hearts = "";
         for(let i=0; i<lives; i++) hearts += "❤️";
@@ -535,35 +449,11 @@
         document.getElementById('livesDisplay').innerText = hearts;
         document.getElementById('scoreDisplay').innerText = "星星: " + currentScore;
     }
-
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    function triggerConfetti() {
-        confetti({ 
-            particleCount: 150, spread: 80, origin: { y: 0.6 },
-            colors: ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1']
-        });
-    }
-
-    function showModal(title, text, btnText) {
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalText').innerHTML = text;
-        document.querySelector('#gameModal .btn-submit').innerText = btnText;
-        document.getElementById('gameModal').style.display = 'flex';
-    }
-
-    function handleModalAction() {
-        document.getElementById('gameModal').style.display = 'none';
-        initGame();
-    }
-
+    function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+    function triggerConfetti() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1'] }); }
+    function showModal(title, text, btnText) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalText').innerHTML = text; document.querySelector('#gameModal .btn-submit').innerText = btnText; document.getElementById('gameModal').style.display = 'flex'; }
+    function handleModalAction() { document.getElementById('gameModal').style.display = 'none'; initGame(); }
     loadVersesFromFile();
-
 </script>
 
 </body>
