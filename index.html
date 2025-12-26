@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>聖經金句重組挑戰 Pro</title>
+    <title>快樂學聖經 (線上版)</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         :root {
-            --primary-color: #6C5CE7;
-            --accent-color: #FDCB6E;
-            --success-color: #00b894;
-            --error-color: #d63031;
-            --text-dark: #2d3436;
-            --glass-bg: rgba(20, 20, 20, 0.7);
-            --card-bg: rgba(255, 255, 255, 0.95);
+            --bg-pink: #ffe6eb;
+            --primary-pink: #ff8fa3;
+            --primary-dark: #ff4757;
+            --text-color: #57606f;
+            --success-color: #2ed573;
         }
 
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            /* 背景圖更換為更清晰的 */
-            background: url('https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?q=80&w=2000&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
-            color: var(--text-dark);
-            
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: var(--bg-pink);
+            background-image: radial-gradient(#ffb8c6 15%, transparent 16%), radial-gradient(#ffb8c6 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -34,185 +32,187 @@
             margin: 0;
             padding: 10px;
             box-sizing: border-box;
-            position: relative; /* For watermark positioning */
+            position: relative; /* 為水印定位用 */
         }
 
-        /* 背景遮罩 */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: -1;
-        }
-
+        /* 遊戲主容器 */
         .game-container {
             max-width: 600px;
             width: 100%;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            box-shadow: 0 10px 0 rgba(255, 143, 163, 0.3);
+            border: 4px solid #fff;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            transition: height 0.3s; 
-            margin-bottom: 30px; /* 留位給浮水印 */
+            gap: 15px;
+            transition: height 0.3s;
+            margin-bottom: 30px; /* 留位置給水印 */
         }
 
+        /* 頂部資訊欄 */
         .hud {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 15px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 12px;
-            color: white;
+            background: #fff5f7;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px dashed var(--primary-pink);
         }
 
-        .lives { letter-spacing: 2px; }
-        .score-board { color: var(--accent-color); font-weight: 700; }
+        .lives { font-size: 1.5rem; }
+        .score-board { 
+            color: var(--primary-dark); 
+            font-weight: 900; 
+            font-size: 1.2rem;
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+        }
 
+        /* 經文標題 */
         .verse-card {
-            background: var(--card-bg);
-            padding: 15px 10px;
-            border-radius: 16px;
             text-align: center;
-            min-height: 50px; 
+            margin-bottom: 5px;
+            min-height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .verse-ref {
-            font-family: 'Noto Serif TC', serif;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 900;
-            color: var(--text-dark);
-            margin: 0;
-        }
-
-        /* Loading 狀態的文字大小調整 */
-        .verse-ref.loading {
-            font-size: 1.1rem;
-            color: #666;
-            font-weight: 500;
+            color: var(--primary-pink);
+            text-shadow: 2px 2px 0 #fff;
         }
 
         .zone-label {
-            color: rgba(255,255,255,0.8);
-            font-size: 0.8rem;
-            margin-left: 5px;
-            margin-bottom: 4px;
+            color: var(--primary-pink);
+            font-weight: 700;
+            margin-left: 10px;
+            font-size: 1rem;
         }
 
+        /* 區域樣式 */
         .zone {
-            height: 140px; 
-            padding: 10px;
-            border-radius: 16px;
+            height: 140px;
+            padding: 15px;
+            border-radius: 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-content: flex-start; 
-            gap: 8px;
-            overflow-y: auto; 
-            transition: border-color 0.3s;
+            align-content: flex-start;
+            gap: 10px;
+            overflow-y: auto;
+            transition: all 0.3s;
         }
 
-        .zone::-webkit-scrollbar { width: 6px; }
-        .zone::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+        .zone::-webkit-scrollbar { width: 8px; }
+        .zone::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 4px; }
 
         .answer-zone {
-            background-color: rgba(255, 255, 255, 0.95);
-            border: 2px solid transparent;
+            background-color: #f7f9fc;
+            border: 3px solid #dfe4ea;
         }
 
         .answer-zone.correct {
+            background-color: #daffea;
             border-color: var(--success-color);
-            background-color: #d1f2eb;
         }
 
         .answer-zone.wrong {
-            border-color: var(--error-color);
-            background-color: #fadbd8;
+            background-color: #ffe0e6;
+            border-color: var(--primary-dark);
             animation: shake 0.4s;
         }
 
         .option-zone {
-            background-color: rgba(0, 0, 0, 0.25);
-            border: 1px dashed rgba(255,255,255,0.2);
+            background-color: #fff0f3;
+            border: 3px dashed var(--primary-pink);
         }
 
+        /* 積木按鈕 */
         .word-brick {
             background: #fff;
-            border-bottom: 3px solid #ced6e0;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-dark);
+            border: 2px solid var(--primary-pink);
+            border-bottom: 5px solid var(--primary-pink);
+            border-radius: 15px;
+            padding: 10px 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-color);
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             user-select: none;
-            height: fit-content; 
+            transition: transform 0.1s;
+            height: fit-content;
         }
         
         .word-brick:active {
-            transform: translateY(2px);
-            border-bottom-width: 0;
-            margin-bottom: 3px;
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+            margin-top: 3px;
         }
+        
+        .word-brick:hover { background-color: #fff5f7; }
 
+        /* 控制按鈕 */
         .controls {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: 10px;
+            gap: 12px;
             margin-top: 5px;
         }
 
         .btn {
             border: none;
-            padding: 14px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            border-radius: 25px;
             cursor: pointer;
             color: white;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            font-family: 'Zen Maru Gothic', sans-serif;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.1);
             transition: all 0.1s;
         }
 
-        .btn:active { transform: translateY(4px); box-shadow: none; }
-        .btn-reset { background: #636e72; }
-        .btn-submit { background: linear-gradient(135deg, var(--primary-color), #a29bfe); }
-        .btn:disabled { background: #b2bec3; box-shadow: none; transform: translateY(4px); color: #dfe6e9; }
+        .btn:active { transform: translateY(5px); box-shadow: none; }
+        .btn-reset { background: #a4b0be; }
+        .btn-submit { background: var(--primary-pink); }
+        .btn-submit:hover { filter: brightness(1.05); }
+        .btn:disabled { background: #dfe4ea; color: #a4b0be; box-shadow: none; transform: translateY(5px); }
 
-        #message {
-            text-align: center;
-            height: 24px;
-            color: white;
-            font-size: 0.95rem;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-        }
+        /* 提示訊息與正確答案框 */
+        #messageArea { min-height: 30px; text-align: center; }
+        .msg-text { font-size: 1.1rem; font-weight: 700; margin: 5px 0; }
 
-        .answer-placeholder {
-            width: 100%;
+        .correction-box {
+            display: none;
+            background: #fffbeb;
+            border: 3px solid #f1c40f;
+            color: #d35400;
+            padding: 15px;
+            border-radius: 15px;
             text-align: center;
-            color: #aaa;
-            margin-top: 50px;
-            pointer-events: none;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 10px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        
+        .correction-title { font-size: 0.9rem; color: #f39c12; margin-bottom: 5px; display: block; }
+        .answer-placeholder { width: 100%; text-align: center; color: #bdc3c7; margin-top: 50px; font-weight: 700; }
 
         /* 彈窗 */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.6);
             z-index: 999;
             justify-content: center;
             align-items: center;
@@ -220,29 +220,40 @@
         }
 
         .modal-card {
-            background: white;
+            background: #fff;
             padding: 30px;
-            border-radius: 20px;
+            border-radius: 30px;
             text-align: center;
             width: 85%;
-            max-width: 320px;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 350px;
+            border: 5px solid var(--primary-pink);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            animation: popIn 0.3s;
         }
 
-        /* --- 浮水印樣式 --- */
+        /* --- 水印樣式 --- */
         .watermark {
             position: fixed;
             bottom: 10px;
             right: 15px;
-            color: rgba(255, 255, 255, 0.6); /* 半透明白色 */
-            font-size: 0.75rem;
             text-align: right;
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            opacity: 0.7;
+            font-weight: 700;
             z-index: 100;
-            pointer-events: none; /* 確保不會擋住點擊 */
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            pointer-events: none; /* 讓點擊穿透水印 */
+        }
+        
+        .watermark span {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 400;
+            margin-top: 2px;
         }
 
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
     </style>
@@ -252,116 +263,131 @@
 <div class="game-container">
     <div class="hud">
         <div class="lives" id="livesDisplay">❤️❤️❤️</div>
-        <div class="score-board" id="scoreDisplay">SCORE: 0</div>
+        <div class="score-board" id="scoreDisplay">星星: 0</div>
     </div>
 
     <div class="verse-card">
-        <div class="verse-ref loading" id="referenceDisplay">正在載入金句題庫...</div>
+        <div class="verse-ref" id="referenceDisplay">正在載入金句...</div>
+    </div>
+
+    <div id="correctionBox" class="correction-box">
+        <span class="correction-title">💡 偷偷告訴你正確答案：</span>
+        <span id="correctionText"></span>
     </div>
 
     <div>
-        <div class="zone-label">你的排列</div>
-        <div class="zone answer-zone" id="answerZone">
-            </div>
+        <div class="zone-label">☁️ 你的排列</div>
+        <div class="zone answer-zone" id="answerZone"></div>
     </div>
 
     <div>
-        <div class="zone-label">詞語選項</div>
-        <div class="zone option-zone" id="optionZone">
-            </div>
+        <div class="zone-label">🌸 詞語積木</div>
+        <div class="zone option-zone" id="optionZone"></div>
     </div>
 
-    <div id="message"></div>
+    <div id="messageArea">
+        <div class="msg-text" id="message"></div>
+    </div>
 
     <div class="controls">
-        <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重置</button>
-        <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>提交答案</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="gameModal">
-    <div class="modal-card">
-        <h2 style="color:var(--primary-color); margin-top:0;" id="modalTitle">TITLE</h2>
-        <p id="modalText" style="color:#555; margin-bottom:20px;">Text</p>
-        <button class="btn btn-submit" style="width:100%" onclick="handleModalAction()">繼續</button>
+        <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重來</button>
+        <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>載入中...</button>
     </div>
 </div>
 
 <div class="watermark">
-    Powered by Gemini<br>
-    Version: 1.2 | Date: 2023-10-27
+    Powered by Gemini
+    <span>Ver 5.1 (Online Data) | 2025.12.26</span>
+</div>
+
+<div class="modal-overlay" id="gameModal">
+    <div class="modal-card">
+        <h2 style="color:var(--primary-dark); margin-top:0;" id="modalTitle">TITLE</h2>
+        <p id="modalText" style="color:#666; font-size:1.1rem; margin-bottom:20px;">Text</p>
+        <button class="btn btn-submit" style="width:100%" onclick="handleModalAction()">繼續玩</button>
+    </div>
 </div>
 
 <script>
-    // --- 1. 資料庫變數 (不再是寫死的內容，而是等待載入) ---
-    let versesData = [];
+    // --- 1. 資料來源 URL ---
     const DATA_URL = 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
+    
+    // 現在 versesData 是一個空陣列，等待從網路加載
+    let versesData = []; 
 
-    // --- 2. 遊戲變數 ---
     let currentScore = 0;
     let lives = 3;
     let currentVerseIndex = 0;
     let currentSegments = []; 
     let shuffledSegments = []; 
     let playerAnswer = []; 
-    let isDataLoaded = false;
 
-    // --- 3. 新增：讀取外部檔案的函數 ---
-    async function loadVersesDatabase() {
+    // --- 新增：從 URL 載入並解析資料的函數 ---
+    async function loadVersesFromFile() {
+        const refDisplay = document.getElementById('referenceDisplay');
+        const checkBtn = document.getElementById('checkBtn');
+        
         try {
+            refDisplay.innerText = "正在連線到金句庫...";
+            
             const response = await fetch(DATA_URL);
             if (!response.ok) throw new Error('網路回應錯誤');
+            
             const text = await response.text();
-            parseTextToData(text);
-        } catch (error) {
-            console.error('Error loading verses:', error);
-            document.getElementById('referenceDisplay').innerText = "載入失敗，請檢查網絡或檔案格式";
-            document.getElementById('referenceDisplay').classList.add('loading');
-            showMessage("無法讀取金句檔案，請刷新頁面重試。", "#ff7675");
-        }
-    }
+            
+            // 開始解析文本
+            const lines = text.split('\n');
+            versesData = []; // 清空舊資料
 
-    // --- 4. 新增：解析文字檔內容的函數 ---
-    function parseTextToData(text) {
-        const lines = text.split('\n');
-        versesData = []; // 清空現有資料
+            lines.forEach(line => {
+                // 跳過空行
+                if (!line || line.trim() === "") return;
 
-        lines.forEach(line => {
-            // 跳過空行
-            if (!line.trim()) return; 
+                // 預期格式: "出處 : 分段1 / 分段2 / ..."
+                // 使用第一個冒號將出處與內容分開
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const ref = parts[0].trim();
+                    // 把剩下的部分重新組合（以防經文內容裡有冒號），然後用斜線分割
+                    const contentRaw = parts.slice(1).join(':').trim();
+                    
+                    // 分割並清除前後空白，過濾掉空字串
+                    const segments = contentRaw.split('/')
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0);
 
-            // 尋找第一個冒號的位置來分隔出處和內容
-            const firstColonIndex = line.indexOf(':');
-            if (firstColonIndex === -1) return; // 如果沒有冒號，跳過此行
+                    if (segments.length > 1) { // 確保至少有兩個部分才能重組
+                        versesData.push({ ref, segments });
+                    }
+                }
+            });
 
-            const ref = line.substring(0, firstColonIndex).trim();
-            const contentRaw = line.substring(firstColonIndex + 1).trim();
-
-            // 用斜線 / 分割內容
-            // 使用 filter 過濾掉可能產生的空字串（例如行尾多了一個 /）
-            const segments = contentRaw.split('/').map(seg => seg.trim()).filter(seg => seg.length > 0);
-
-            if (ref && segments.length > 0) {
-                versesData.push({ ref, segments });
+            if (versesData.length === 0) {
+                throw new Error('找不到有效的金句資料');
             }
-        });
 
-        if (versesData.length > 0) {
-            isDataLoaded = true;
-            document.getElementById('checkBtn').disabled = false;
+            console.log(`成功載入 ${versesData.length} 句金句。`);
+            // 資料載入成功，開始遊戲
             initGame();
-        } else {
-             document.getElementById('referenceDisplay').innerText = "題庫檔案是空的或格式錯誤";
+
+        } catch (error) {
+            console.error("載入失敗:", error);
+            refDisplay.innerText = "⚠️ 金句載入失敗";
+            showMessage("無法讀取金句檔案，請檢查網路或檔案格式。", "#ff4757");
+            checkBtn.innerText = "載入失敗";
+            checkBtn.disabled = true;
         }
     }
 
-    // --- 5. 遊戲核心功能 ---
+    // --- 遊戲核心邏輯 (與 V5 相同) ---
 
     function initGame() {
-        if (!isDataLoaded) return;
         currentScore = 0;
         lives = 3;
+        // 隨機抽選
         currentVerseIndex = Math.floor(Math.random() * versesData.length);
+        
+        document.getElementById('checkBtn').disabled = false; // 啟用按鈕
         updateUI();
         loadLevel();
     }
@@ -369,17 +395,16 @@
     function loadLevel() {
         const verseObj = versesData[currentVerseIndex % versesData.length];
         
-        const refDisplay = document.getElementById('referenceDisplay');
-        refDisplay.innerText = verseObj.ref;
-        refDisplay.classList.remove('loading'); // 移除載入中的樣式
+        document.getElementById('referenceDisplay').innerText = verseObj.ref;
+        showMessage("");
+        hideCorrection();
         
-        document.getElementById('message').innerText = "";
         document.getElementById('answerZone').className = "zone answer-zone";
         
         const checkBtn = document.getElementById('checkBtn');
-        checkBtn.innerText = "提交答案";
+        checkBtn.innerText = "完成！";
         checkBtn.onclick = checkAnswer;
-        checkBtn.style.background = ""; 
+        checkBtn.style.background = "var(--primary-pink)";
 
         currentSegments = [...verseObj.segments];
         shuffledSegments = [...verseObj.segments];
@@ -404,7 +429,7 @@
         optionZone.innerHTML = '';
 
         if (playerAnswer.length === 0) {
-            answerZone.innerHTML = '<div class="answer-placeholder">點擊下方詞語依序排列</div>';
+            answerZone.innerHTML = '<div class="answer-placeholder">把詞語拉到這裡喔！</div>';
             resetBtn.disabled = true;
         } else {
             resetBtn.disabled = false;
@@ -423,6 +448,7 @@
         let div = document.createElement('div');
         div.className = 'word-brick';
         div.innerText = text;
+        
         div.onclick = function() {
             if (isAnswerZone) {
                 const word = playerAnswer[index];
@@ -440,7 +466,7 @@
 
     function checkAnswer() {
         if (playerAnswer.length === 0) {
-             showMessage("請先選擇詞語！", "#ffeaa7");
+             showMessage("還沒選詞語喔！加油！", "#ffa502");
              return;
         }
 
@@ -460,11 +486,12 @@
         if (isCorrect) {
             currentScore++;
             answerZone.classList.add('correct');
-            showMessage("答對了！阿們！", "#55efc4");
+            showMessage("🎉 哇！你答對了！太棒了！", "#2ed573");
+            hideCorrection();
             
             const btn = document.getElementById('checkBtn');
-            btn.innerText = "下一題 ➔";
-            btn.style.background = "#00b894"; 
+            btn.innerText = "下一關 ➔";
+            btn.style.background = "#2ed573"; 
             btn.onclick = nextLevel;
             
             triggerConfetti();
@@ -472,15 +499,17 @@
         } else {
             lives--;
             answerZone.classList.add('wrong');
-            showMessage("順序不對，請重試！", "#ff7675");
+            showMessage("哎呀，順序好像不對喔...", "#ff4757");
             updateUI();
             
+            showCorrection(currentSegments.join(''));
+
             setTimeout(() => {
                 answerZone.classList.remove('wrong');
             }, 1000);
 
             if (lives <= 0) {
-                showModal("Game Over", `最終得分：<b>${currentScore}</b><br>休息一下，重新得力！`, "重新挑戰");
+                showModal("遊戲結束", `你獲得了 <b>${currentScore}</b> 顆星星！<br>休息一下再來挑戰！`, "重新開始");
             }
         }
     }
@@ -491,18 +520,27 @@
         updateUI();
     }
 
+    function showCorrection(text) {
+        document.getElementById('correctionText').innerText = text;
+        document.getElementById('correctionBox').style.display = 'block';
+    }
+
+    function hideCorrection() {
+        document.getElementById('correctionBox').style.display = 'none';
+    }
+
     function showMessage(text, color) {
         const msg = document.getElementById('message');
         msg.innerText = text;
-        msg.style.color = color;
+        msg.style.color = color || 'var(--text-color)';
     }
 
     function updateUI() {
         let hearts = "";
         for(let i=0; i<lives; i++) hearts += "❤️";
-        for(let i=lives; i<3; i++) hearts += "🖤"; 
+        for(let i=lives; i<3; i++) hearts += "🤍"; 
         document.getElementById('livesDisplay').innerText = hearts;
-        document.getElementById('scoreDisplay').innerText = "SCORE: " + currentScore;
+        document.getElementById('scoreDisplay').innerText = "星星: " + currentScore;
     }
 
     function shuffleArray(array) {
@@ -513,11 +551,14 @@
     }
 
     function triggerConfetti() {
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        confetti({ 
+            particleCount: 150, spread: 80, origin: { y: 0.6 },
+            colors: ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1']
+        });
     }
 
     function showModal(title, text, btnText) {
-        document.getElementById('modalTitle').innerHTML = title; 
+        document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalText').innerHTML = text;
         document.querySelector('#gameModal .btn-submit').innerText = btnText;
         document.getElementById('gameModal').style.display = 'flex';
@@ -529,8 +570,8 @@
     }
 
     // --- 程式入口 ---
-    // 頁面載入後，先執行讀取資料庫的動作
-    loadVersesDatabase();
+    // 取代原本的 initGame()，改為先載入資料
+    loadVersesFromFile();
 
 </script>
 
