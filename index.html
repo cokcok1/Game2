@@ -32,7 +32,7 @@
             margin: 0;
             padding: 10px;
             box-sizing: border-box;
-            position: relative; /* 為水印定位用 */
+            position: relative;
         }
 
         /* 遊戲主容器 */
@@ -48,7 +48,7 @@
             flex-direction: column;
             gap: 15px;
             transition: height 0.3s;
-            margin-bottom: 30px; /* 留位置給水印 */
+            margin-bottom: 30px;
         }
 
         /* 頂部資訊欄 */
@@ -231,7 +231,7 @@
             animation: popIn 0.3s;
         }
 
-        /* --- 水印樣式 --- */
+        /* 水印樣式 */
         .watermark {
             position: fixed;
             bottom: 10px;
@@ -243,7 +243,7 @@
             font-weight: 700;
             z-index: 100;
             text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-            pointer-events: none; /* 讓點擊穿透水印 */
+            pointer-events: none; 
         }
         
         .watermark span {
@@ -297,7 +297,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.1 (Online Data) | 2025.12.26</span>
+    <span>Ver 5.2 (Fix Ref) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -309,10 +309,7 @@
 </div>
 
 <script>
-    // --- 1. 資料來源 URL ---
     const DATA_URL = 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
-    
-    // 現在 versesData 是一個空陣列，等待從網路加載
     let versesData = []; 
 
     let currentScore = 0;
@@ -322,7 +319,6 @@
     let shuffledSegments = []; 
     let playerAnswer = []; 
 
-    // --- 新增：從 URL 載入並解析資料的函數 ---
     async function loadVersesFromFile() {
         const refDisplay = document.getElementById('referenceDisplay');
         const checkBtn = document.getElementById('checkBtn');
@@ -330,33 +326,44 @@
         try {
             refDisplay.innerText = "正在連線到金句庫...";
             
-            const response = await fetch(DATA_URL);
+            // 加入時間戳參數避免緩存問題
+            const response = await fetch(DATA_URL + '?t=' + new Date().getTime());
             if (!response.ok) throw new Error('網路回應錯誤');
             
             const text = await response.text();
             
-            // 開始解析文本
             const lines = text.split('\n');
-            versesData = []; // 清空舊資料
+            versesData = [];
 
             lines.forEach(line => {
-                // 跳過空行
                 if (!line || line.trim() === "") return;
 
-                // 預期格式: "出處 : 分段1 / 分段2 / ..."
-                // 使用第一個冒號將出處與內容分開
+                // --- 關鍵修正：智慧解析 (Smart Parsing) ---
+                // 先用冒號切分
                 const parts = line.split(':');
+                
                 if (parts.length >= 2) {
-                    const ref = parts[0].trim();
-                    // 把剩下的部分重新組合（以防經文內容裡有冒號），然後用斜線分割
-                    const contentRaw = parts.slice(1).join(':').trim();
+                    let ref = parts[0].trim();
+                    let contentStartIndex = 1;
+
+                    // 檢查：如果分割後的第二部分是「純數字」（例如 11），
+                    // 代表原本的格式是「Book 3:11」，那個冒號不應該被切斷。
+                    // Regex: ^\s*\d+\s*$ 代表只有數字和空白
+                    if (parts.length > 2 && /^\s*\d+\s*$/.test(parts[1])) {
+                        // 把章節和節數接回去
+                        ref += ":" + parts[1].trim(); 
+                        // 內容從下一個部分開始
+                        contentStartIndex = 2;
+                    }
+
+                    // 把剩下的部分重新組合作為經文內容
+                    const contentRaw = parts.slice(contentStartIndex).join(':').trim();
                     
-                    // 分割並清除前後空白，過濾掉空字串
                     const segments = contentRaw.split('/')
                         .map(s => s.trim())
                         .filter(s => s.length > 0);
 
-                    if (segments.length > 1) { // 確保至少有兩個部分才能重組
+                    if (segments.length > 1) {
                         versesData.push({ ref, segments });
                     }
                 }
@@ -367,27 +374,24 @@
             }
 
             console.log(`成功載入 ${versesData.length} 句金句。`);
-            // 資料載入成功，開始遊戲
             initGame();
 
         } catch (error) {
             console.error("載入失敗:", error);
             refDisplay.innerText = "⚠️ 金句載入失敗";
-            showMessage("無法讀取金句檔案，請檢查網路或檔案格式。", "#ff4757");
+            showMessage("無法讀取金句檔案，請檢查格式或網路。", "#ff4757");
             checkBtn.innerText = "載入失敗";
             checkBtn.disabled = true;
         }
     }
 
-    // --- 遊戲核心邏輯 (與 V5 相同) ---
+    // --- 以下遊戲邏輯保持不變 ---
 
     function initGame() {
         currentScore = 0;
         lives = 3;
-        // 隨機抽選
         currentVerseIndex = Math.floor(Math.random() * versesData.length);
-        
-        document.getElementById('checkBtn').disabled = false; // 啟用按鈕
+        document.getElementById('checkBtn').disabled = false;
         updateUI();
         loadLevel();
     }
@@ -569,8 +573,6 @@
         initGame();
     }
 
-    // --- 程式入口 ---
-    // 取代原本的 initGame()，改為先載入資料
     loadVersesFromFile();
 
 </script>
