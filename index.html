@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>快樂學聖經</title>
     
+    <link rel="icon" type="image/png" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+    <link rel="apple-touch-icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+    <link rel="shortcut icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -21,9 +24,9 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            /* 關鍵修正 1: 使用 dvh 確保不被瀏覽器網址列擋住 */
-            height: 100vh; /* 舊瀏覽器備用 */
-            height: 100dvh; /* 現代瀏覽器專用 (Dynamic Viewport Height) */
+            /* 使用 dvh 確保不被瀏覽器網址列擋住 */
+            height: 100vh; 
+            height: 100dvh; 
             overflow: hidden; /* 禁止整體頁面滑動 */
             font-family: 'Zen Maru Gothic', sans-serif;
             background-color: var(--bg-pink);
@@ -40,7 +43,7 @@
         .game-container {
             width: 95%; 
             max-width: 600px;
-            /* 關鍵修正 2: 容器高度也使用 dvh，並留出邊距 */
+            /* 容器高度也使用 dvh */
             height: 94vh; 
             height: 94dvh; 
             background: rgba(255, 255, 255, 0.95);
@@ -53,8 +56,7 @@
             gap: 8px; 
             box-sizing: border-box;
             position: relative;
-            
-            /* 關鍵修正 3: 確保底部有安全距離，避開 iPhone 的橫條或 Android 的手勢區 */
+            /* 確保底部有安全距離 */
             margin-bottom: env(safe-area-inset-bottom);
         }
 
@@ -167,7 +169,6 @@
             user-select: none;
             transition: transform 0.1s;
             height: fit-content;
-            /* 防止誤觸選取文字 */
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -183,7 +184,7 @@
         .footer-section {
             flex: 0 0 auto;
             margin-top: 5px;
-            /* 關鍵修正 4: 底部增加一點內邊距，讓按鈕遠離螢幕邊緣 */
+            /* 底部增加內邊距，讓按鈕遠離螢幕邊緣 */
             padding-bottom: 5px; 
         }
 
@@ -246,7 +247,7 @@
             color: var(--primary-dark); 
             opacity: 0.6; 
             font-weight: 700; 
-            z-index: 5; /* 降低層級，確保不會擋到按鈕點擊 */
+            z-index: 5; 
             pointer-events: none; 
         }
         .watermark span { display: block; font-size: 0.6rem; font-weight: 400; }
@@ -295,7 +296,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.7 (Android Fix) | 2025.12.26</span>
+    <span>Ver 5.8 (Final + Icon) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
