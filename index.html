@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>快樂學聖經 (線上版)</title>
+    <title>快樂學聖經 (空間優化版)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -30,119 +30,117 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            padding: 10px;
+            padding: 10px; /* 減少外部邊距 */
             box-sizing: border-box;
             position: relative;
         }
 
-        /* 遊戲主容器 */
         .game-container {
             max-width: 600px;
             width: 100%;
             background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 30px;
-            box-shadow: 0 10px 0 rgba(255, 143, 163, 0.3);
-            border: 4px solid #fff;
+            /* 優化：減少內部邊距，讓內容更靠邊 */
+            padding: 15px; 
+            border-radius: 24px;
+            box-shadow: 0 8px 0 rgba(255, 143, 163, 0.3);
+            border: 3px solid #fff;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            /* 優化：收緊元素間距 */
+            gap: 10px; 
             transition: height 0.3s;
             margin-bottom: 30px;
         }
 
-        /* 頂部資訊欄 */
         .hud {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #fff5f7;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 8px 15px; /* 優化：變扁一點 */
+            border-radius: 15px;
             border: 2px dashed var(--primary-pink);
         }
 
-        .lives { font-size: 1.3rem; letter-spacing: 2px; }
+        .lives { font-size: 1.2rem; letter-spacing: 2px; }
         .score-board { 
             color: var(--primary-dark); 
             font-weight: 900; 
-            font-size: 1.2rem;
+            font-size: 1rem;
             background: #fff;
-            padding: 5px 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+            padding: 4px 12px;
+            border-radius: 12px;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.05);
         }
 
-        /* 經文標題 */
         .verse-card {
             text-align: center;
-            margin-bottom: 5px;
-            min-height: 40px;
+            margin-bottom: 2px;
+            min-height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        /* 優化：字體改小一點，節省頭部空間 */
         .verse-ref {
-            font-size: 1.6rem;
+            font-size: 1.4rem; 
             font-weight: 900;
             color: var(--primary-pink);
             text-shadow: 2px 2px 0 #fff;
+            margin: 0;
+            line-height: 1.2;
         }
 
         .zone-label {
             color: var(--primary-pink);
             font-weight: 700;
-            margin-left: 10px;
-            font-size: 1rem;
+            margin-left: 8px;
+            font-size: 0.9rem; /* 字體改小 */
+            margin-bottom: 4px;
         }
 
-        /* 區域樣式 */
         .zone {
-            height: 140px;
-            padding: 15px;
-            border-radius: 20px;
+            border-radius: 16px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             align-content: flex-start;
-            gap: 10px;
+            gap: 8px; /* 優化：積木間距改小 */
             overflow-y: auto;
             transition: all 0.3s;
+            padding: 10px;
         }
 
-        .zone::-webkit-scrollbar { width: 8px; }
-        .zone::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 4px; }
+        .zone::-webkit-scrollbar { width: 6px; }
+        .zone::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 3px; }
 
+        /* 優化：答案區改矮一點 (110px)，因為一開始是空的 */
         .answer-zone {
+            height: 110px; 
             background-color: #f7f9fc;
-            border: 3px solid #dfe4ea;
+            border: 2px solid #dfe4ea;
         }
 
-        .answer-zone.correct {
-            background-color: #daffea;
-            border-color: var(--success-color);
-        }
+        .answer-zone.correct { background-color: #daffea; border-color: var(--success-color); }
+        .answer-zone.wrong { background-color: #ffe0e6; border-color: var(--primary-dark); animation: shake 0.4s; }
 
-        .answer-zone.wrong {
-            background-color: #ffe0e6;
-            border-color: var(--primary-dark);
-            animation: shake 0.4s;
-        }
-
+        /* 優化：選項區改高一點 (180px)，讓更多積木不用滑動就看得到 */
         .option-zone {
+            height: 180px; 
             background-color: #fff0f3;
-            border: 3px dashed var(--primary-pink);
+            border: 2px dashed var(--primary-pink);
         }
 
-        /* 積木按鈕 */
+        /* 優化：積木瘦身 */
         .word-brick {
             background: #fff;
             border: 2px solid var(--primary-pink);
-            border-bottom: 5px solid var(--primary-pink);
-            border-radius: 15px;
-            padding: 10px 16px;
-            font-size: 1.1rem;
+            border-bottom: 4px solid var(--primary-pink); /* 稍微變薄 */
+            border-radius: 12px;
+            /* 優化：內邊距改小，字體改小，這樣一行能塞更多字 */
+            padding: 8px 12px; 
+            font-size: 0.95rem; 
             font-weight: 700;
             color: var(--text-color);
             cursor: pointer;
@@ -152,62 +150,59 @@
         }
         
         .word-brick:active {
-            transform: translateY(3px);
+            transform: translateY(2px);
             border-bottom-width: 2px;
-            margin-top: 3px;
+            margin-top: 2px;
         }
         
         .word-brick:hover { background-color: #fff5f7; }
 
-        /* 控制按鈕 */
         .controls {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: 12px;
+            gap: 10px;
             margin-top: 5px;
         }
 
         .btn {
             border: none;
-            padding: 15px;
-            font-size: 1.2rem;
+            padding: 12px; /* 按鈕稍微變扁 */
+            font-size: 1.1rem;
             font-weight: 900;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
             color: white;
             font-family: 'Zen Maru Gothic', sans-serif;
-            box-shadow: 0 5px 0 rgba(0,0,0,0.1);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
             transition: all 0.1s;
         }
 
-        .btn:active { transform: translateY(5px); box-shadow: none; }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
         .btn-reset { background: #a4b0be; }
         .btn-submit { background: var(--primary-pink); }
         .btn-submit:hover { filter: brightness(1.05); }
-        .btn:disabled { background: #dfe4ea; color: #a4b0be; box-shadow: none; transform: translateY(5px); }
+        .btn:disabled { background: #dfe4ea; color: #a4b0be; box-shadow: none; transform: translateY(4px); }
 
-        /* 提示訊息與正確答案框 */
-        #messageArea { min-height: 30px; text-align: center; }
-        .msg-text { font-size: 1.1rem; font-weight: 700; margin: 5px 0; }
+        #messageArea { min-height: 25px; text-align: center; }
+        .msg-text { font-size: 1rem; font-weight: 700; margin: 2px 0; }
 
         .correction-box {
             display: none;
             background: #fffbeb;
-            border: 3px solid #f1c40f;
+            border: 2px solid #f1c40f;
             color: #d35400;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 10px;
+            border-radius: 12px;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            margin-top: 10px;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-top: 5px;
+            animation: popIn 0.4s;
         }
         
-        .correction-title { font-size: 0.9rem; color: #f39c12; margin-bottom: 5px; display: block; }
-        .answer-placeholder { width: 100%; text-align: center; color: #bdc3c7; margin-top: 50px; font-weight: 700; }
+        .correction-title { font-size: 0.85rem; color: #f39c12; margin-bottom: 2px; display: block; }
+        .answer-placeholder { width: 100%; text-align: center; color: #bdc3c7; margin-top: 40px; font-weight: 700; font-size: 0.9rem; }
 
-        /* 彈窗 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -231,31 +226,32 @@
             animation: popIn 0.3s;
         }
 
-        /* 水印樣式 */
         .watermark {
             position: fixed;
-            bottom: 10px;
-            right: 15px;
+            bottom: 5px;
+            right: 10px;
             text-align: right;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: var(--primary-dark);
-            opacity: 0.7;
+            opacity: 0.6;
             font-weight: 700;
             z-index: 100;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
             pointer-events: none; 
         }
         
-        .watermark span {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 400;
-            margin-top: 2px;
-        }
+        .watermark span { display: block; font-size: 0.65rem; font-weight: 400; }
 
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
+        /* 手機版特別優化 (iPhone 尺寸) */
+        @media (max-width: 480px) {
+            .game-container { padding: 12px; gap: 8px; }
+            .verse-ref { font-size: 1.3rem; }
+            .zone { gap: 6px; padding: 8px; }
+            .word-brick { padding: 6px 10px; font-size: 0.9rem; border-radius: 10px; }
+            .option-zone { height: 200px; } /* 手機上讓選項區再高一點 */
+        }
     </style>
 </head>
 <body>
@@ -271,7 +267,7 @@
     </div>
 
     <div id="correctionBox" class="correction-box">
-        <span class="correction-title">💡 偷偷告訴你正確答案：</span>
+        <span class="correction-title">💡 正確答案是：</span>
         <span id="correctionText"></span>
     </div>
 
@@ -297,7 +293,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.4 (5 Lives) | 2025.12.26</span>
+    <span>Ver 5.5 (Compact) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -313,7 +309,6 @@
     let versesData = []; 
 
     let currentScore = 0;
-    // --- 修改點 1：生命值改為 5 ---
     let lives = 5; 
     let currentVerseIndex = 0;
     let currentSegments = []; 
@@ -327,7 +322,6 @@
         try {
             refDisplay.innerText = "正在連線到金句庫...";
             
-            // 加入時間戳參數避免緩存問題
             const response = await fetch(DATA_URL + '?t=' + new Date().getTime());
             if (!response.ok) throw new Error('網路回應錯誤');
             
@@ -339,7 +333,6 @@
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
 
-                // 支援連字號和逗號的數字解析
                 const parts = line.split(':');
                 
                 if (parts.length >= 2) {
@@ -381,7 +374,6 @@
 
     function initGame() {
         currentScore = 0;
-        // --- 修改點 1：重置為 5 條命 ---
         lives = 5; 
         currentVerseIndex = Math.floor(Math.random() * versesData.length);
         document.getElementById('checkBtn').disabled = false;
@@ -501,10 +493,9 @@
             
             showCorrection(currentSegments.join(''));
 
-            // --- 修改點 2：答錯後，按鈕直接變為「下一題」 ---
             checkBtn.innerText = "下一題 ➔";
-            checkBtn.style.background = "#ff4757"; // 稍微變色提示
-            checkBtn.onclick = nextLevel; // 點擊直接跳到下一關，不再重試
+            checkBtn.style.background = "#ff4757"; 
+            checkBtn.onclick = nextLevel; 
 
             setTimeout(() => {
                 answerZone.classList.remove('wrong');
@@ -539,7 +530,6 @@
 
     function updateUI() {
         let hearts = "";
-        // --- 修改點 1：循環檢查到 5 ---
         for(let i=0; i<lives; i++) hearts += "❤️";
         for(let i=lives; i<5; i++) hearts += "🤍"; 
         document.getElementById('livesDisplay').innerText = hearts;
