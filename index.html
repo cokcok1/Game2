@@ -2,8 +2,8 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>快樂學聖經 (自適應版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>快樂學聖經 (Android修復版)</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -17,45 +17,50 @@
             --success-color: #2ed573;
         }
 
-        body {
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            /* 關鍵修正 1: 使用 dvh 確保不被瀏覽器網址列擋住 */
+            height: 100vh; /* 舊瀏覽器備用 */
+            height: 100dvh; /* 現代瀏覽器專用 (Dynamic Viewport Height) */
+            overflow: hidden; /* 禁止整體頁面滑動 */
             font-family: 'Zen Maru Gothic', sans-serif;
             background-color: var(--bg-pink);
             background-image: radial-gradient(#ffb8c6 15%, transparent 16%), radial-gradient(#ffb8c6 15%, transparent 16%);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
             color: var(--text-color);
-            /* 改動 1: 讓 body 佔滿全螢幕高度，防止整體頁面滾動 */
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden; 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin: 0;
-            padding: 0; /* 移除 padding，完全交給內部控制 */
         }
 
         .game-container {
-            width: 95%; /* 手機上留一點邊就好 */
+            width: 95%; 
             max-width: 600px;
-            /* 改動 2: 高度改為螢幕的 92%，上下留白，中間自動撐開 */
-            height: 92vh; 
+            /* 關鍵修正 2: 容器高度也使用 dvh，並留出邊距 */
+            height: 94vh; 
+            height: 94dvh; 
             background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border-radius: 24px;
             box-shadow: 0 5px 0 rgba(255, 143, 163, 0.3);
             border: 3px solid #fff;
             display: flex;
-            flex-direction: column; /* 垂直排列 */
+            flex-direction: column; 
             gap: 8px; 
             box-sizing: border-box;
             position: relative;
+            
+            /* 關鍵修正 3: 確保底部有安全距離，避開 iPhone 的橫條或 Android 的手勢區 */
+            margin-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 頂部區域 (固定高度) */
+        /* 頂部區域 */
         .header-section {
-            flex: 0 0 auto; /* 不會縮放 */
+            flex: 0 0 auto; 
         }
 
         .hud {
@@ -105,36 +110,31 @@
             margin-bottom: 2px;
         }
 
-        /* --- 改動 3: 核心佈局調整 (Flex Grow) --- */
-        
-        /* 包裹「你的排列」區域 */
+        /* 中間彈性區 */
         .answer-section {
-            flex: 1; /* 分配 1 份空間 (會自動拉伸) */
+            flex: 1; 
             display: flex;
             flex-direction: column;
-            min-height: 0; /* 關鍵：允許 flex 子元素滾動 */
+            min-height: 0; 
         }
 
-        /* 包裹「詞語積木」區域 */
         .option-section {
-            flex: 1; /* 分配 1 份空間 (會自動拉伸，與上面均分) */
+            flex: 1; 
             display: flex;
             flex-direction: column;
             min-height: 0;
         }
 
-        /* 共用的格子樣式 */
         .zone {
-            flex: 1; /* 佔滿父容器的高度 */
+            flex: 1; 
             border-radius: 16px;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-content: flex-start; /* 內容靠上 */
+            align-content: flex-start; 
             gap: 8px;
             padding: 10px;
-            overflow-y: auto; /* 內容多時才滾動 */
-            /* 優化滾動條體驗 */
+            overflow-y: auto; 
             -webkit-overflow-scrolling: touch;
         }
 
@@ -154,7 +154,6 @@
             border: 2px dashed var(--primary-pink);
         }
 
-        /* 積木樣式 */
         .word-brick {
             background: #fff;
             border: 2px solid var(--primary-pink);
@@ -168,6 +167,8 @@
             user-select: none;
             transition: transform 0.1s;
             height: fit-content;
+            /* 防止誤觸選取文字 */
+            -webkit-tap-highlight-color: transparent;
         }
         
         .word-brick:active {
@@ -178,10 +179,12 @@
         
         .word-brick:hover { background-color: #fff5f7; }
 
-        /* 底部控制區 (固定高度) */
+        /* 底部控制區 */
         .footer-section {
             flex: 0 0 auto;
             margin-top: 5px;
+            /* 關鍵修正 4: 底部增加一點內邊距，讓按鈕遠離螢幕邊緣 */
+            padding-bottom: 5px; 
         }
 
         .controls {
@@ -200,6 +203,9 @@
             color: white;
             font-family: 'Zen Maru Gothic', sans-serif;
             box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            /* 確保按鈕在最上層，不被遮擋 */
+            position: relative; 
+            z-index: 10;
         }
 
         .btn:active { transform: translateY(4px); box-shadow: none; }
@@ -221,7 +227,7 @@
             text-align: center;
             font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 5px; /* 放在中間時 */
+            margin-bottom: 5px;
             animation: popIn 0.4s;
         }
         
@@ -231,7 +237,18 @@
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-pink); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
         
-        .watermark { position: fixed; bottom: 5px; right: 10px; text-align: right; font-size: 0.7rem; color: var(--primary-dark); opacity: 0.6; font-weight: 700; z-index: 100; pointer-events: none; }
+        .watermark { 
+            position: fixed; 
+            bottom: 5px; 
+            right: 10px; 
+            text-align: right; 
+            font-size: 0.7rem; 
+            color: var(--primary-dark); 
+            opacity: 0.6; 
+            font-weight: 700; 
+            z-index: 5; /* 降低層級，確保不會擋到按鈕點擊 */
+            pointer-events: none; 
+        }
         .watermark span { display: block; font-size: 0.6rem; font-weight: 400; }
 
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -278,7 +295,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.6 (Flex Layout) | 2025.12.26</span>
+    <span>Ver 5.7 (Android Fix) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -290,7 +307,7 @@
 </div>
 
 <script>
-    // JS 邏輯與之前完全相同，無需改動
+    // JS 邏輯保持不變
     const DATA_URL = 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
     let versesData = []; 
     let currentScore = 0;
