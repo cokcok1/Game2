@@ -1,178 +1,538 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 英語翻譯導師</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>聖經金句重組挑戰 Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
-        body { font-family: 'Noto Sans TC', sans-serif; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        :root {
+            --primary-color: #6C5CE7;
+            --accent-color: #FDCB6E;
+            --success-color: #00b894;
+            --error-color: #d63031;
+            --text-dark: #2d3436;
+            --glass-bg: rgba(20, 20, 20, 0.7);
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            /* 背景圖更換為更清晰的 */
+            background: url('https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?q=80&w=2000&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-dark);
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            position: relative; /* For watermark positioning */
+        }
+
+        /* 背景遮罩 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: height 0.3s; 
+            margin-bottom: 30px; /* 留位給浮水印 */
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .lives { letter-spacing: 2px; }
+        .score-board { color: var(--accent-color); font-weight: 700; }
+
+        .verse-card {
+            background: var(--card-bg);
+            padding: 15px 10px;
+            border-radius: 16px;
+            text-align: center;
+            min-height: 50px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .verse-ref {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        /* Loading 狀態的文字大小調整 */
+        .verse-ref.loading {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .zone-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            margin-left: 5px;
+            margin-bottom: 4px;
+        }
+
+        .zone {
+            height: 140px; 
+            padding: 10px;
+            border-radius: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: flex-start; 
+            gap: 8px;
+            overflow-y: auto; 
+            transition: border-color 0.3s;
+        }
+
+        .zone::-webkit-scrollbar { width: 6px; }
+        .zone::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+
+        .answer-zone {
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 2px solid transparent;
+        }
+
+        .answer-zone.correct {
+            border-color: var(--success-color);
+            background-color: #d1f2eb;
+        }
+
+        .answer-zone.wrong {
+            border-color: var(--error-color);
+            background-color: #fadbd8;
+            animation: shake 0.4s;
+        }
+
+        .option-zone {
+            background-color: rgba(0, 0, 0, 0.25);
+            border: 1px dashed rgba(255,255,255,0.2);
+        }
+
+        .word-brick {
+            background: #fff;
+            border-bottom: 3px solid #ced6e0;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            user-select: none;
+            height: fit-content; 
+        }
+        
+        .word-brick:active {
+            transform: translateY(2px);
+            border-bottom-width: 0;
+            margin-bottom: 3px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            border: none;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-reset { background: #636e72; }
+        .btn-submit { background: linear-gradient(135deg, var(--primary-color), #a29bfe); }
+        .btn:disabled { background: #b2bec3; box-shadow: none; transform: translateY(4px); color: #dfe6e9; }
+
+        #message {
+            text-align: center;
+            height: 24px;
+            color: white;
+            font-size: 0.95rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .answer-placeholder {
+            width: 100%;
+            text-align: center;
+            color: #aaa;
+            margin-top: 50px;
+            pointer-events: none;
+        }
+
+        /* 彈窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- 浮水印樣式 --- */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            color: rgba(255, 255, 255, 0.6); /* 半透明白色 */
+            font-size: 0.75rem;
+            text-align: right;
+            z-index: 100;
+            pointer-events: none; /* 確保不會擋住點擊 */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen py-10 px-4">
+<body>
 
-    <div class="max-w-2xl mx-auto">
-        <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <div>
-                <h1 class="text-2xl font-bold text-indigo-600">AI English Tutor</h1>
-                <p class="text-slate-500 text-sm">提升你的英語翻譯能力</p>
-            </div>
-            <div class="text-right">
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Score</p>
-                <p id="totalScore" class="text-4xl font-black text-indigo-500">0</p>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-3xl shadow-xl shadow-indigo-100/50 overflow-hidden border border-slate-100">
-            <div class="p-8">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="bg-indigo-100 text-indigo-600 text-xs font-bold px-2.5 py-1 rounded-full uppercase">Chinese</span>
-                </div>
-                <div id="chineseSentence" class="text-2xl font-bold text-slate-800 leading-relaxed mb-8">
-                    正在請 Gemini 出題中...
-                </div>
-
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="bg-emerald-100 text-emerald-600 text-xs font-bold px-2.5 py-1 rounded-full uppercase">Your Translation</span>
-                </div>
-                <textarea id="userTranslation" 
-                    class="w-full p-4 text-lg border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:ring-0 transition-all duration-300 min-h-[120px] mb-6 placeholder:text-slate-300"
-                    placeholder="在此輸入英文翻譯..."></textarea>
-
-                <button onclick="submitTranslation()" id="submitBtn" 
-                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 active:scale-[0.98]">
-                    提交答案評分
-                </button>
-            </div>
-
-            <div id="resultArea" class="hidden border-t border-slate-50 bg-slate-50/50 p-8 fade-in">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center gap-3">
-                        <div id="scoreCircle" class="w-16 h-16 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg">
-                            <span id="currentScore">0</span>
-                        </div>
-                        <p class="font-bold text-slate-700">這題得分</p>
-                    </div>
-                    <button onclick="nextQuestion()" class="bg-white hover:bg-slate-100 text-slate-600 font-bold py-2 px-6 rounded-xl border border-slate-200 transition-all">
-                        下一題
-                    </button>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="bg-white p-5 rounded-2xl border border-slate-100">
-                        <h4 class="text-sm font-bold text-indigo-500 mb-2 italic">Teacher's Feedback</h4>
-                        <p id="feedback" class="text-slate-700 leading-relaxed"></p>
-                    </div>
-
-                    <div class="bg-indigo-600 p-5 rounded-2xl text-white shadow-md">
-                        <h4 class="text-sm font-bold text-indigo-200 mb-2 italic">Native Speaker Says</h4>
-                        <p id="nativeVersion" class="text-lg font-medium"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <p class="text-center mt-8 text-slate-400 text-xs">Powered by Gemini AI • Keep practicing every day!</p>
+<div class="game-container">
+    <div class="hud">
+        <div class="lives" id="livesDisplay">❤️❤️❤️</div>
+        <div class="score-board" id="scoreDisplay">SCORE: 0</div>
     </div>
 
-    <script>
-        // ★★★ 請替換成你的 Cloudflare Worker 網址 ★★★
-        const GEMINI_API_URL = 'https://little-thunder-4b7b.imsklam1.workers.dev';
+    <div class="verse-card">
+        <div class="verse-ref loading" id="referenceDisplay">正在載入金句題庫...</div>
+    </div>
+
+    <div>
+        <div class="zone-label">你的排列</div>
+        <div class="zone answer-zone" id="answerZone">
+            </div>
+    </div>
+
+    <div>
+        <div class="zone-label">詞語選項</div>
+        <div class="zone option-zone" id="optionZone">
+            </div>
+    </div>
+
+    <div id="message"></div>
+
+    <div class="controls">
+        <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重置</button>
+        <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>提交答案</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="gameModal">
+    <div class="modal-card">
+        <h2 style="color:var(--primary-color); margin-top:0;" id="modalTitle">TITLE</h2>
+        <p id="modalText" style="color:#555; margin-bottom:20px;">Text</p>
+        <button class="btn btn-submit" style="width:100%" onclick="handleModalAction()">繼續</button>
+    </div>
+</div>
+
+<div class="watermark">
+    Powered by Gemini<br>
+    Version: 1.2 | Date: 2023-10-27
+</div>
+
+<script>
+    // --- 1. 資料庫變數 (不再是寫死的內容，而是等待載入) ---
+    let versesData = [];
+    const DATA_URL = 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
+
+    // --- 2. 遊戲變數 ---
+    let currentScore = 0;
+    let lives = 3;
+    let currentVerseIndex = 0;
+    let currentSegments = []; 
+    let shuffledSegments = []; 
+    let playerAnswer = []; 
+    let isDataLoaded = false;
+
+    // --- 3. 新增：讀取外部檔案的函數 ---
+    async function loadVersesDatabase() {
+        try {
+            const response = await fetch(DATA_URL);
+            if (!response.ok) throw new Error('網路回應錯誤');
+            const text = await response.text();
+            parseTextToData(text);
+        } catch (error) {
+            console.error('Error loading verses:', error);
+            document.getElementById('referenceDisplay').innerText = "載入失敗，請檢查網絡或檔案格式";
+            document.getElementById('referenceDisplay').classList.add('loading');
+            showMessage("無法讀取金句檔案，請刷新頁面重試。", "#ff7675");
+        }
+    }
+
+    // --- 4. 新增：解析文字檔內容的函數 ---
+    function parseTextToData(text) {
+        const lines = text.split('\n');
+        versesData = []; // 清空現有資料
+
+        lines.forEach(line => {
+            // 跳過空行
+            if (!line.trim()) return; 
+
+            // 尋找第一個冒號的位置來分隔出處和內容
+            const firstColonIndex = line.indexOf(':');
+            if (firstColonIndex === -1) return; // 如果沒有冒號，跳過此行
+
+            const ref = line.substring(0, firstColonIndex).trim();
+            const contentRaw = line.substring(firstColonIndex + 1).trim();
+
+            // 用斜線 / 分割內容
+            // 使用 filter 過濾掉可能產生的空字串（例如行尾多了一個 /）
+            const segments = contentRaw.split('/').map(seg => seg.trim()).filter(seg => seg.length > 0);
+
+            if (ref && segments.length > 0) {
+                versesData.push({ ref, segments });
+            }
+        });
+
+        if (versesData.length > 0) {
+            isDataLoaded = true;
+            document.getElementById('checkBtn').disabled = false;
+            initGame();
+        } else {
+             document.getElementById('referenceDisplay').innerText = "題庫檔案是空的或格式錯誤";
+        }
+    }
+
+    // --- 5. 遊戲核心功能 ---
+
+    function initGame() {
+        if (!isDataLoaded) return;
+        currentScore = 0;
+        lives = 3;
+        currentVerseIndex = Math.floor(Math.random() * versesData.length);
+        updateUI();
+        loadLevel();
+    }
+
+    function loadLevel() {
+        const verseObj = versesData[currentVerseIndex % versesData.length];
         
-        let totalScore = 0;
-        let currentChinese = "";
+        const refDisplay = document.getElementById('referenceDisplay');
+        refDisplay.innerText = verseObj.ref;
+        refDisplay.classList.remove('loading'); // 移除載入中的樣式
+        
+        document.getElementById('message').innerText = "";
+        document.getElementById('answerZone').className = "zone answer-zone";
+        
+        const checkBtn = document.getElementById('checkBtn');
+        checkBtn.innerText = "提交答案";
+        checkBtn.onclick = checkAnswer;
+        checkBtn.style.background = ""; 
 
-        // 初始化：頁面載入後自動出題
-        window.onload = nextQuestion;
+        currentSegments = [...verseObj.segments];
+        shuffledSegments = [...verseObj.segments];
+        playerAnswer = [];
+        
+        shuffleArray(shuffledSegments);
+        renderZones();
+    }
 
-        async function nextQuestion() {
-            // 重置介面
-            const chineseDisplay = document.getElementById('chineseSentence');
-            const resultArea = document.getElementById('resultArea');
-            const submitBtn = document.getElementById('submitBtn');
-            const userArea = document.getElementById('userTranslation');
+    function resetRound() {
+        shuffledSegments = shuffledSegments.concat(playerAnswer);
+        playerAnswer = [];
+        renderZones();
+    }
 
-            chineseDisplay.innerText = "正在思考新題目...";
-            chineseDisplay.classList.add('animate-pulse');
-            userArea.value = "";
-            resultArea.classList.add('hidden');
-            submitBtn.disabled = true;
-            submitBtn.innerText = "準備中...";
+    function renderZones() {
+        const answerZone = document.getElementById('answerZone');
+        const optionZone = document.getElementById('optionZone');
+        const resetBtn = document.getElementById('resetBtn');
 
-            try {
-                const response = await fetch(GEMINI_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'get_question' })
-                });
-                
-                // 假設 Worker 直接回傳字串
-                currentChinese = await response.text();
-                
-                chineseDisplay.innerText = currentChinese;
-                chineseDisplay.classList.remove('animate-pulse');
-                submitBtn.disabled = false;
-                submitBtn.innerText = "提交答案評分";
-            } catch (e) {
-                chineseDisplay.innerText = "出錯了，請重新整理頁面。";
-                console.error(e);
+        answerZone.innerHTML = '';
+        optionZone.innerHTML = '';
+
+        if (playerAnswer.length === 0) {
+            answerZone.innerHTML = '<div class="answer-placeholder">點擊下方詞語依序排列</div>';
+            resetBtn.disabled = true;
+        } else {
+            resetBtn.disabled = false;
+        }
+
+        playerAnswer.forEach((text, index) => {
+            answerZone.appendChild(createBrick(text, true, index));
+        });
+
+        shuffledSegments.forEach((text, index) => {
+            optionZone.appendChild(createBrick(text, false, index));
+        });
+    }
+
+    function createBrick(text, isAnswerZone, index) {
+        let div = document.createElement('div');
+        div.className = 'word-brick';
+        div.innerText = text;
+        div.onclick = function() {
+            if (isAnswerZone) {
+                const word = playerAnswer[index];
+                playerAnswer.splice(index, 1);
+                shuffledSegments.push(word);
+            } else {
+                const word = shuffledSegments[index];
+                shuffledSegments.splice(index, 1);
+                playerAnswer.push(word);
+            }
+            renderZones();
+        };
+        return div;
+    }
+
+    function checkAnswer() {
+        if (playerAnswer.length === 0) {
+             showMessage("請先選擇詞語！", "#ffeaa7");
+             return;
+        }
+
+        let isCorrect = true;
+        if (playerAnswer.length !== currentSegments.length) isCorrect = false;
+        else {
+            for (let i = 0; i < currentSegments.length; i++) {
+                if (playerAnswer[i] !== currentSegments[i]) {
+                    isCorrect = false;
+                    break;
+                }
             }
         }
 
-        async function submitTranslation() {
-            const userText = document.getElementById('userTranslation').value.trim();
-            if (!userText) return alert("請輸入你的翻譯！");
+        const answerZone = document.getElementById('answerZone');
 
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerText = "評分中，請稍候...";
-            submitBtn.disabled = true;
+        if (isCorrect) {
+            currentScore++;
+            answerZone.classList.add('correct');
+            showMessage("答對了！阿們！", "#55efc4");
+            
+            const btn = document.getElementById('checkBtn');
+            btn.innerText = "下一題 ➔";
+            btn.style.background = "#00b894"; 
+            btn.onclick = nextLevel;
+            
+            triggerConfetti();
 
-            try {
-                const response = await fetch(GEMINI_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'evaluate',
-                        chinese: currentChinese,
-                        translation: userText
-                    })
-                });
+        } else {
+            lives--;
+            answerZone.classList.add('wrong');
+            showMessage("順序不對，請重試！", "#ff7675");
+            updateUI();
+            
+            setTimeout(() => {
+                answerZone.classList.remove('wrong');
+            }, 1000);
 
-                const data = await response.json();
-                showResult(data);
-            } catch (e) {
-                alert("評分失敗，請檢查 Worker 連線。");
-                submitBtn.disabled = false;
-                submitBtn.innerText = "重試一次";
-                console.error(e);
+            if (lives <= 0) {
+                showModal("Game Over", `最終得分：<b>${currentScore}</b><br>休息一下，重新得力！`, "重新挑戰");
             }
         }
+    }
 
-        function showResult(data) {
-            const score = parseInt(data.score);
-            const scoreDisplay = document.getElementById('currentScore');
-            const scoreCircle = document.getElementById('scoreCircle');
-            
-            // 更新分數與顏色
-            scoreDisplay.innerText = score;
-            if (score >= 80) scoreCircle.className = "w-16 h-16 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg bg-emerald-500";
-            else if (score >= 60) scoreCircle.className = "w-16 h-16 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg bg-amber-500";
-            else scoreCircle.className = "w-16 h-16 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg bg-rose-500";
+    function nextLevel() {
+        currentVerseIndex++;
+        loadLevel();
+        updateUI();
+    }
 
-            document.getElementById('feedback').innerText = data.feedback;
-            document.getElementById('nativeVersion').innerText = data.native;
-            
-            // 累加總分
-            totalScore += score;
-            document.getElementById('totalScore').innerText = totalScore;
-            
-            // 顯示結果區域
-            document.getElementById('resultArea').classList.remove('hidden');
-            document.getElementById('submitBtn').innerText = "已完成評分";
+    function showMessage(text, color) {
+        const msg = document.getElementById('message');
+        msg.innerText = text;
+        msg.style.color = color;
+    }
+
+    function updateUI() {
+        let hearts = "";
+        for(let i=0; i<lives; i++) hearts += "❤️";
+        for(let i=lives; i<3; i++) hearts += "🖤"; 
+        document.getElementById('livesDisplay').innerText = hearts;
+        document.getElementById('scoreDisplay').innerText = "SCORE: " + currentScore;
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-    </script>
+    }
+
+    function triggerConfetti() {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    }
+
+    function showModal(title, text, btnText) {
+        document.getElementById('modalTitle').innerHTML = title; 
+        document.getElementById('modalText').innerHTML = text;
+        document.querySelector('#gameModal .btn-submit').innerText = btnText;
+        document.getElementById('gameModal').style.display = 'flex';
+    }
+
+    function handleModalAction() {
+        document.getElementById('gameModal').style.display = 'none';
+        initGame();
+    }
+
+    // --- 程式入口 ---
+    // 頁面載入後，先執行讀取資料庫的動作
+    loadVersesDatabase();
+
+</script>
+
 </body>
 </html>
