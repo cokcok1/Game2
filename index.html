@@ -8,31 +8,36 @@
     <link rel="icon" type="image/png" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
     <link rel="apple-touch-icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
     <link rel="shortcut icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
+        /* --- 修改點：全新藍色調色盤 --- */
         :root {
-            --bg-pink: #ffe6eb;
-            --primary-pink: #ff8fa3;
-            --primary-dark: #ff4757;
-            --text-color: #57606f;
-            --success-color: #2ed573;
+            --bg-blue: #e3f2fd;       /* 背景淺藍 */
+            --primary-blue: #64b5f6;  /* 主按鈕/邊框天空藍 */
+            --primary-dark: #1976d2;  /* 深藍色 (用於強調文字或錯誤) */
+            --text-color: #546e7a;    /* 藍灰色字體 */
+            --success-color: #4db6ac; /* 青綠色 (成功) */
         }
 
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
-            /* 使用 dvh 確保不被瀏覽器網址列擋住 */
             height: 100vh; 
             height: 100dvh; 
-            overflow: hidden; /* 禁止整體頁面滑動 */
+            overflow: hidden;
             font-family: 'Zen Maru Gothic', sans-serif;
-            background-color: var(--bg-pink);
-            background-image: radial-gradient(#ffb8c6 15%, transparent 16%), radial-gradient(#ffb8c6 15%, transparent 16%);
+            
+            /* --- 修改點：應用藍色背景變數 --- */
+            background-color: var(--bg-blue);
+            /* --- 修改點：背景波點改為淺藍色 (#bbdefb) --- */
+            background-image: radial-gradient(#bbdefb 15%, transparent 16%), radial-gradient(#bbdefb 15%, transparent 16%);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
+            
             color: var(--text-color);
             display: flex;
             flex-direction: column;
@@ -43,20 +48,19 @@
         .game-container {
             width: 95%; 
             max-width: 600px;
-            /* 容器高度也使用 dvh */
             height: 94vh; 
             height: 94dvh; 
             background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border-radius: 24px;
-            box-shadow: 0 5px 0 rgba(255, 143, 163, 0.3);
+            /* --- 修改點：陰影改為藍色調 --- */
+            box-shadow: 0 5px 0 rgba(100, 181, 246, 0.3);
             border: 3px solid #fff;
             display: flex;
             flex-direction: column; 
             gap: 8px; 
             box-sizing: border-box;
             position: relative;
-            /* 確保底部有安全距離 */
             margin-bottom: env(safe-area-inset-bottom);
         }
 
@@ -69,15 +73,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #fff5f7;
+            background: #f1f8e9; /* 稍微帶點清新的底色 */
             padding: 6px 15px;
             border-radius: 15px;
-            border: 2px dashed var(--primary-pink);
+            /* --- 修改點：邊框改為藍色變數 --- */
+            border: 2px dashed var(--primary-blue);
             margin-bottom: 5px;
         }
 
-        .lives { font-size: 1.2rem; letter-spacing: 2px; }
+        .lives { font-size: 1.2rem; letter-spacing: 2px; color: #e57373; /* 愛心保持紅色 */ }
         .score-board { 
+            /* --- 修改點：分數顏色改為深藍 --- */
             color: var(--primary-dark); 
             font-weight: 900; 
             font-size: 1rem;
@@ -98,14 +104,16 @@
         .verse-ref {
             font-size: 1.4rem; 
             font-weight: 900;
-            color: var(--primary-pink);
+            /* --- 修改點：經文標題顏色 --- */
+            color: var(--primary-blue);
             text-shadow: 2px 2px 0 #fff;
             margin: 0;
             line-height: 1.2;
         }
 
         .zone-label {
-            color: var(--primary-pink);
+            /* --- 修改點：標籤顏色 --- */
+            color: var(--primary-blue);
             font-weight: 700;
             margin-left: 5px;
             font-size: 0.9rem;
@@ -141,25 +149,28 @@
         }
 
         .zone::-webkit-scrollbar { width: 5px; }
-        .zone::-webkit-scrollbar-thumb { background: #ffd1dc; border-radius: 3px; }
+        /* --- 修改點：滾動條顏色 --- */
+        .zone::-webkit-scrollbar-thumb { background: #b3e5fc; border-radius: 3px; }
 
         .answer-zone {
-            background-color: #f7f9fc;
-            border: 2px solid #dfe4ea;
+            background-color: #eceff1;
+            border: 2px solid #cfd8dc;
         }
 
-        .answer-zone.correct { background-color: #daffea; border-color: var(--success-color); }
-        .answer-zone.wrong { background-color: #ffe0e6; border-color: var(--primary-dark); animation: shake 0.4s; }
+        .answer-zone.correct { background-color: #e0f2f1; border-color: var(--success-color); }
+        .answer-zone.wrong { background-color: #ffebee; border-color: #ef5350; animation: shake 0.4s; }
 
         .option-zone {
-            background-color: #fff0f3;
-            border: 2px dashed var(--primary-pink);
+            /* --- 修改點：選項區背景和邊框 --- */
+            background-color: #e3f2fd;
+            border: 2px dashed var(--primary-blue);
         }
 
         .word-brick {
             background: #fff;
-            border: 2px solid var(--primary-pink);
-            border-bottom: 4px solid var(--primary-pink);
+            /* --- 修改點：積木邊框和底部顏色 --- */
+            border: 2px solid var(--primary-blue);
+            border-bottom: 4px solid var(--primary-blue);
             border-radius: 12px;
             padding: 8px 12px; 
             font-size: 0.95rem; 
@@ -178,13 +189,13 @@
             margin-top: 2px;
         }
         
-        .word-brick:hover { background-color: #fff5f7; }
+        /* --- 修改點：懸浮顏色 --- */
+        .word-brick:hover { background-color: #e3f2fd; }
 
         /* 底部控制區 */
         .footer-section {
             flex: 0 0 auto;
             margin-top: 5px;
-            /* 底部增加內邊距，讓按鈕遠離螢幕邊緣 */
             padding-bottom: 5px; 
         }
 
@@ -204,25 +215,25 @@
             color: white;
             font-family: 'Zen Maru Gothic', sans-serif;
             box-shadow: 0 4px 0 rgba(0,0,0,0.1);
-            /* 確保按鈕在最上層，不被遮擋 */
             position: relative; 
             z-index: 10;
         }
 
         .btn:active { transform: translateY(4px); box-shadow: none; }
-        .btn-reset { background: #a4b0be; }
-        .btn-submit { background: var(--primary-pink); }
+        .btn-reset { background: #90a4ae; }
+        /* --- 修改點：提交按鈕顏色 --- */
+        .btn-submit { background: var(--primary-blue); }
         .btn-submit:hover { filter: brightness(1.05); }
-        .btn:disabled { background: #dfe4ea; color: #a4b0be; box-shadow: none; transform: translateY(4px); }
+        .btn:disabled { background: #cfd8dc; color: #90a4ae; box-shadow: none; transform: translateY(4px); }
 
         #messageArea { min-height: 20px; text-align: center; }
         .msg-text { font-size: 0.9rem; font-weight: 700; margin: 2px 0; }
 
         .correction-box {
             display: none;
-            background: #fffbeb;
-            border: 2px solid #f1c40f;
-            color: #d35400;
+            background: #fffde7;
+            border: 2px solid #fdd835;
+            color: #f57f17;
             padding: 8px;
             border-radius: 12px;
             text-align: center;
@@ -232,11 +243,12 @@
             animation: popIn 0.4s;
         }
         
-        .answer-placeholder { width: 100%; text-align: center; color: #bdc3c7; margin-top: 20px; font-weight: 700; font-size: 0.9rem; }
+        .answer-placeholder { width: 100%; text-align: center; color: #b0bec5; margin-top: 20px; font-weight: 700; font-size: 0.9rem; }
 
         /* 彈窗與水印 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-pink); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
+        /* --- 修改點：彈窗邊框 --- */
+        .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-blue); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
         
         .watermark { 
             position: fixed; 
@@ -244,6 +256,7 @@
             right: 10px; 
             text-align: right; 
             font-size: 0.7rem; 
+            /* --- 修改點：水印顏色 --- */
             color: var(--primary-dark); 
             opacity: 0.6; 
             font-weight: 700; 
@@ -279,7 +292,7 @@
     </div>
 
     <div class="option-section">
-        <div class="zone-label">🌸 詞語積木</div>
+        <div class="zone-label">🦕 詞語積木</div>
         <div class="zone option-zone" id="optionZone"></div>
     </div>
 
@@ -296,7 +309,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.8 (Final + Icon) | 2025.12.26</span>
+    <span>Ver 5.9 (Blue Theme) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -373,7 +386,8 @@
         const checkBtn = document.getElementById('checkBtn');
         checkBtn.innerText = "完成！";
         checkBtn.onclick = checkAnswer;
-        checkBtn.style.background = "var(--primary-pink)";
+        /* --- 修改點：按鈕背景變數 --- */
+        checkBtn.style.background = "var(--primary-blue)";
         currentSegments = [...verseObj.segments];
         shuffledSegments = [...verseObj.segments];
         playerAnswer = [];
@@ -423,7 +437,7 @@
     }
 
     function checkAnswer() {
-        if (playerAnswer.length === 0) { showMessage("還沒選詞語喔！加油！", "#ffa502"); return; }
+        if (playerAnswer.length === 0) { showMessage("還沒選詞語喔！加油！", "#ffb300"); return; }
         let isCorrect = true;
         if (playerAnswer.length !== currentSegments.length) isCorrect = false;
         else {
@@ -436,20 +450,22 @@
         if (isCorrect) {
             currentScore++;
             answerZone.classList.add('correct');
-            showMessage("🎉 哇！你答對了！太棒了！", "#2ed573");
+            /* --- 修改點：成功訊息顏色 --- */
+            showMessage("🎉 哇！你答對了！太棒了！", "var(--success-color)");
             hideCorrection();
             checkBtn.innerText = "下一關 ➔";
-            checkBtn.style.background = "#2ed573"; 
+            checkBtn.style.background = "var(--success-color)"; 
             checkBtn.onclick = nextLevel;
             triggerConfetti();
         } else {
             lives--;
             answerZone.classList.add('wrong');
-            showMessage("哎呀，順序不對，正確答案是：", "#ff4757");
+            /* --- 修改點：錯誤訊息顏色 --- */
+            showMessage("哎呀，順序不對，正確答案是：", "#ef5350");
             updateUI();
             showCorrection(currentSegments.join(''));
             checkBtn.innerText = "下一題 ➔";
-            checkBtn.style.background = "#ff4757"; 
+            checkBtn.style.background = "#ef5350"; 
             checkBtn.onclick = nextLevel; 
             setTimeout(() => { answerZone.classList.remove('wrong'); }, 1000);
             if (lives <= 0) showModal("遊戲結束", `你獲得了 <b>${currentScore}</b> 顆星星！<br>休息一下再來挑戰！`, "重新開始");
@@ -468,7 +484,8 @@
         document.getElementById('scoreDisplay').innerText = "星星: " + currentScore;
     }
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
-    function triggerConfetti() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1'] }); }
+    /* --- 修改點：紙屑特效顏色改為藍/綠色系 --- */
+    function triggerConfetti() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#64b5f6', '#4db6ac', '#fff176', '#ffb74d'] }); }
     function showModal(title, text, btnText) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalText').innerHTML = text; document.querySelector('#gameModal .btn-submit').innerText = btnText; document.getElementById('gameModal').style.display = 'flex'; }
     function handleModalAction() { document.getElementById('gameModal').style.display = 'none'; initGame(); }
     loadVersesFromFile();
