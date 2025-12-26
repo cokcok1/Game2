@@ -297,7 +297,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.2 (Fix Ref) | 2025.12.26</span>
+    <span>Ver 5.3 (Fix Ranges) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -338,18 +338,17 @@
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
 
-                // --- 關鍵修正：智慧解析 (Smart Parsing) ---
-                // 先用冒號切分
+                // --- V5.3 關鍵修正：支援連字號和逗號的數字解析 ---
                 const parts = line.split(':');
                 
                 if (parts.length >= 2) {
                     let ref = parts[0].trim();
                     let contentStartIndex = 1;
 
-                    // 檢查：如果分割後的第二部分是「純數字」（例如 11），
-                    // 代表原本的格式是「Book 3:11」，那個冒號不應該被切斷。
-                    // Regex: ^\s*\d+\s*$ 代表只有數字和空白
-                    if (parts.length > 2 && /^\s*\d+\s*$/.test(parts[1])) {
+                    // 檢查：分割後的第二部分是否為數字，或包含連字號(-)、逗號(,)
+                    // Regex: ^\s*[\d\-,\s]+\s*$ 
+                    // 這行代表：只要是數字、減號、逗號或空白組成的，都當作章節的一部分
+                    if (parts.length > 2 && /^\s*[\d\-\,\s]+\s*$/.test(parts[1])) {
                         // 把章節和節數接回去
                         ref += ":" + parts[1].trim(); 
                         // 內容從下一個部分開始
@@ -385,7 +384,7 @@
         }
     }
 
-    // --- 以下遊戲邏輯保持不變 ---
+    // --- 遊戲邏輯 ---
 
     function initGame() {
         currentScore = 0;
