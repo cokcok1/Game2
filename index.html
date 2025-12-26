@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
@@ -62,7 +62,7 @@
             border: 2px dashed var(--primary-pink);
         }
 
-        .lives { font-size: 1.5rem; }
+        .lives { font-size: 1.3rem; letter-spacing: 2px; }
         .score-board { 
             color: var(--primary-dark); 
             font-weight: 900; 
@@ -262,7 +262,7 @@
 
 <div class="game-container">
     <div class="hud">
-        <div class="lives" id="livesDisplay">❤️❤️❤️</div>
+        <div class="lives" id="livesDisplay">❤️❤️❤️❤️❤️</div>
         <div class="score-board" id="scoreDisplay">星星: 0</div>
     </div>
 
@@ -297,7 +297,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.3 (Fix Ranges) | 2025.12.26</span>
+    <span>Ver 5.4 (5 Lives) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -313,7 +313,8 @@
     let versesData = []; 
 
     let currentScore = 0;
-    let lives = 3;
+    // --- 修改點 1：生命值改為 5 ---
+    let lives = 5; 
     let currentVerseIndex = 0;
     let currentSegments = []; 
     let shuffledSegments = []; 
@@ -338,24 +339,18 @@
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
 
-                // --- V5.3 關鍵修正：支援連字號和逗號的數字解析 ---
+                // 支援連字號和逗號的數字解析
                 const parts = line.split(':');
                 
                 if (parts.length >= 2) {
                     let ref = parts[0].trim();
                     let contentStartIndex = 1;
 
-                    // 檢查：分割後的第二部分是否為數字，或包含連字號(-)、逗號(,)
-                    // Regex: ^\s*[\d\-,\s]+\s*$ 
-                    // 這行代表：只要是數字、減號、逗號或空白組成的，都當作章節的一部分
                     if (parts.length > 2 && /^\s*[\d\-\,\s]+\s*$/.test(parts[1])) {
-                        // 把章節和節數接回去
                         ref += ":" + parts[1].trim(); 
-                        // 內容從下一個部分開始
                         contentStartIndex = 2;
                     }
 
-                    // 把剩下的部分重新組合作為經文內容
                     const contentRaw = parts.slice(contentStartIndex).join(':').trim();
                     
                     const segments = contentRaw.split('/')
@@ -384,11 +379,10 @@
         }
     }
 
-    // --- 遊戲邏輯 ---
-
     function initGame() {
         currentScore = 0;
-        lives = 3;
+        // --- 修改點 1：重置為 5 條命 ---
+        lives = 5; 
         currentVerseIndex = Math.floor(Math.random() * versesData.length);
         document.getElementById('checkBtn').disabled = false;
         updateUI();
@@ -485,6 +479,7 @@
         }
 
         const answerZone = document.getElementById('answerZone');
+        const checkBtn = document.getElementById('checkBtn');
 
         if (isCorrect) {
             currentScore++;
@@ -492,20 +487,24 @@
             showMessage("🎉 哇！你答對了！太棒了！", "#2ed573");
             hideCorrection();
             
-            const btn = document.getElementById('checkBtn');
-            btn.innerText = "下一關 ➔";
-            btn.style.background = "#2ed573"; 
-            btn.onclick = nextLevel;
+            checkBtn.innerText = "下一關 ➔";
+            checkBtn.style.background = "#2ed573"; 
+            checkBtn.onclick = nextLevel;
             
             triggerConfetti();
 
         } else {
             lives--;
             answerZone.classList.add('wrong');
-            showMessage("哎呀，順序好像不對喔...", "#ff4757");
+            showMessage("哎呀，順序不對，正確答案是：", "#ff4757");
             updateUI();
             
             showCorrection(currentSegments.join(''));
+
+            // --- 修改點 2：答錯後，按鈕直接變為「下一題」 ---
+            checkBtn.innerText = "下一題 ➔";
+            checkBtn.style.background = "#ff4757"; // 稍微變色提示
+            checkBtn.onclick = nextLevel; // 點擊直接跳到下一關，不再重試
 
             setTimeout(() => {
                 answerZone.classList.remove('wrong');
@@ -540,8 +539,9 @@
 
     function updateUI() {
         let hearts = "";
+        // --- 修改點 1：循環檢查到 5 ---
         for(let i=0; i<lives; i++) hearts += "❤️";
-        for(let i=lives; i<3; i++) hearts += "🤍"; 
+        for(let i=lives; i<5; i++) hearts += "🤍"; 
         document.getElementById('livesDisplay').innerText = hearts;
         document.getElementById('scoreDisplay').innerText = "星星: " + currentScore;
     }
