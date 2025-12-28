@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>快樂學聖經</title>
+    <title>快樂學聖經 / Bible Verse Game</title>
     
     <link rel="icon" type="image/png" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
     <link rel="apple-touch-icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
@@ -13,13 +13,12 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        /* --- 修改點：全新藍色調色盤 --- */
         :root {
-            --bg-blue: #e3f2fd;       /* 背景淺藍 */
-            --primary-blue: #64b5f6;  /* 主按鈕/邊框天空藍 */
-            --primary-dark: #1976d2;  /* 深藍色 (用於強調文字或錯誤) */
-            --text-color: #546e7a;    /* 藍灰色字體 */
-            --success-color: #4db6ac; /* 青綠色 (成功) */
+            --bg-blue: #e3f2fd;
+            --primary-blue: #64b5f6;
+            --primary-dark: #1976d2;
+            --text-color: #546e7a;
+            --success-color: #4db6ac;
         }
 
         html, body {
@@ -30,14 +29,10 @@
             height: 100dvh; 
             overflow: hidden;
             font-family: 'Zen Maru Gothic', sans-serif;
-            
-            /* --- 修改點：應用藍色背景變數 --- */
             background-color: var(--bg-blue);
-            /* --- 修改點：背景波點改為淺藍色 (#bbdefb) --- */
             background-image: radial-gradient(#bbdefb 15%, transparent 16%), radial-gradient(#bbdefb 15%, transparent 16%);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
-            
             color: var(--text-color);
             display: flex;
             flex-direction: column;
@@ -53,7 +48,6 @@
             background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border-radius: 24px;
-            /* --- 修改點：陰影改為藍色調 --- */
             box-shadow: 0 5px 0 rgba(100, 181, 246, 0.3);
             border: 3px solid #fff;
             display: flex;
@@ -64,7 +58,6 @@
             margin-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 頂部區域 */
         .header-section {
             flex: 0 0 auto; 
         }
@@ -73,17 +66,35 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f1f8e9; /* 稍微帶點清新的底色 */
+            background: #f1f8e9;
             padding: 6px 15px;
             border-radius: 15px;
-            /* --- 修改點：邊框改為藍色變數 --- */
             border: 2px dashed var(--primary-blue);
             margin-bottom: 5px;
         }
 
-        .lives { font-size: 1.2rem; letter-spacing: 2px; color: #e57373; /* 愛心保持紅色 */ }
+        .lives { font-size: 1.2rem; letter-spacing: 2px; color: #e57373; }
+        
+        /* --- 新增：語言切換按鈕樣式 --- */
+        .lang-btn {
+            background: #fff;
+            border: 2px solid var(--primary-blue);
+            border-radius: 12px;
+            color: var(--primary-blue);
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-weight: 700;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+        }
+        .lang-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
         .score-board { 
-            /* --- 修改點：分數顏色改為深藍 --- */
             color: var(--primary-dark); 
             font-weight: 900; 
             font-size: 1rem;
@@ -104,7 +115,6 @@
         .verse-ref {
             font-size: 1.4rem; 
             font-weight: 900;
-            /* --- 修改點：經文標題顏色 --- */
             color: var(--primary-blue);
             text-shadow: 2px 2px 0 #fff;
             margin: 0;
@@ -112,7 +122,6 @@
         }
 
         .zone-label {
-            /* --- 修改點：標籤顏色 --- */
             color: var(--primary-blue);
             font-weight: 700;
             margin-left: 5px;
@@ -120,7 +129,6 @@
             margin-bottom: 2px;
         }
 
-        /* 中間彈性區 */
         .answer-section {
             flex: 1; 
             display: flex;
@@ -149,7 +157,6 @@
         }
 
         .zone::-webkit-scrollbar { width: 5px; }
-        /* --- 修改點：滾動條顏色 --- */
         .zone::-webkit-scrollbar-thumb { background: #b3e5fc; border-radius: 3px; }
 
         .answer-zone {
@@ -161,14 +168,12 @@
         .answer-zone.wrong { background-color: #ffebee; border-color: #ef5350; animation: shake 0.4s; }
 
         .option-zone {
-            /* --- 修改點：選項區背景和邊框 --- */
             background-color: #e3f2fd;
             border: 2px dashed var(--primary-blue);
         }
 
         .word-brick {
             background: #fff;
-            /* --- 修改點：積木邊框和底部顏色 --- */
             border: 2px solid var(--primary-blue);
             border-bottom: 4px solid var(--primary-blue);
             border-radius: 12px;
@@ -189,10 +194,8 @@
             margin-top: 2px;
         }
         
-        /* --- 修改點：懸浮顏色 --- */
         .word-brick:hover { background-color: #e3f2fd; }
 
-        /* 底部控制區 */
         .footer-section {
             flex: 0 0 auto;
             margin-top: 5px;
@@ -221,7 +224,6 @@
 
         .btn:active { transform: translateY(4px); box-shadow: none; }
         .btn-reset { background: #90a4ae; }
-        /* --- 修改點：提交按鈕顏色 --- */
         .btn-submit { background: var(--primary-blue); }
         .btn-submit:hover { filter: brightness(1.05); }
         .btn:disabled { background: #cfd8dc; color: #90a4ae; box-shadow: none; transform: translateY(4px); }
@@ -245,9 +247,7 @@
         
         .answer-placeholder { width: 100%; text-align: center; color: #b0bec5; margin-top: 20px; font-weight: 700; font-size: 0.9rem; }
 
-        /* 彈窗與水印 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        /* --- 修改點：彈窗邊框 --- */
         .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-blue); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
         
         .watermark { 
@@ -256,7 +256,6 @@
             right: 10px; 
             text-align: right; 
             font-size: 0.7rem; 
-            /* --- 修改點：水印顏色 --- */
             color: var(--primary-dark); 
             opacity: 0.6; 
             font-weight: 700; 
@@ -276,23 +275,24 @@
     <div class="header-section">
         <div class="hud">
             <div class="lives" id="livesDisplay">❤️❤️❤️❤️❤️</div>
+            <button class="lang-btn" id="langBtn" onclick="toggleLanguage()">English</button>
             <div class="score-board" id="scoreDisplay">星星: 0</div>
     </div>
         <div class="verse-card">
-            <div class="verse-ref" id="referenceDisplay">正在載入金句...</div>
+            <div class="verse-ref" id="referenceDisplay">Loading...</div>
         </div>
         <div id="correctionBox" class="correction-box">
-            <span>💡 正確答案：</span><span id="correctionText"></span>
+            <span id="correctionLabel">💡 正確答案：</span><span id="correctionText"></span>
     </div>
     </div>
 
     <div class="answer-section">
-        <div class="zone-label">☁️ 你的排列</div>
+        <div class="zone-label" id="zoneLabelAnswer">☁️ 你的排列</div>
         <div class="zone answer-zone" id="answerZone"></div>
     </div>
 
     <div class="option-section">
-        <div class="zone-label">🦕 詞語積木</div>
+        <div class="zone-label" id="zoneLabelOption">🦕 詞語積木</div>
         <div class="zone option-zone" id="optionZone"></div>
     </div>
 
@@ -309,20 +309,76 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 5.9 (Blue Theme) | 2025.12.26</span>
+    <span>Ver 6.0 (Bilingual) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
     <div class="modal-card">
         <h2 style="color:var(--primary-dark); margin-top:0;" id="modalTitle">TITLE</h2>
         <p id="modalText" style="color:#666; font-size:1.1rem; margin-bottom:20px;">Text</p>
-        <button class="btn btn-submit" style="width:100%" onclick="handleModalAction()">繼續玩</button>
+        <button class="btn btn-submit" id="modalBtn" style="width:100%" onclick="handleModalAction()">繼續玩</button>
     </div>
 </div>
 
 <script>
-    // JS 邏輯保持不變
-    const DATA_URL = 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
+    // --- 1. 多語言設定 (i18n) ---
+    const CONFIG = {
+        zh: {
+            url: 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt',
+            ui: {
+                yourArrangement: "☁️ 你的排列",
+                wordBricks: "🦕 詞語積木",
+                reset: "重來",
+                check: "完成！",
+                loading: "載入中...",
+                nextLevel: "下一關 ➔",
+                nextQuestion: "下一題 ➔",
+                correctMsg: "🎉 哇！你答對了！太棒了！",
+                wrongMsg: "哎呀，順序不對，正確答案是：",
+                gameOverTitle: "遊戲結束",
+                gameOverMsg: "你獲得了 <b>{score}</b> 顆星星！<br>休息一下再來挑戰！",
+                restart: "重新開始",
+                loadingText: "正在載入金句...",
+                loadFail: "⚠️ 金句載入失敗",
+                loadFailMsg: "無法讀取金句檔案，請檢查格式或網路。",
+                correctLabel: "💡 正確答案：",
+                placeholder: "把詞語拉到這裡喔！",
+                scorePrefix: "星星: ",
+                langBtnText: "English", // 切換到英文的按鈕文字
+                loadEmpty: "請先選詞語喔！加油！"
+            }
+        },
+        en: {
+            url: 'https://cokcok1.github.io/Game2/Bible-Verses-E.txt',
+            ui: {
+                yourArrangement: "☁️ Your Arrangement",
+                wordBricks: "🦕 Word Bricks",
+                reset: "Reset",
+                check: "Check!",
+                loading: "Loading...",
+                nextLevel: "Next Level ➔",
+                nextQuestion: "Next Question ➔",
+                correctMsg: "🎉 Awesome! You got it right!",
+                wrongMsg: "Oops, incorrect. The answer is:",
+                gameOverTitle: "Game Over",
+                gameOverMsg: "You earned <b>{score}</b> Stars!<br>Take a rest and try again!",
+                restart: "Play Again",
+                loadingText: "Loading Verses...",
+                loadFail: "⚠️ Load Failed",
+                loadFailMsg: "Cannot load verses file.",
+                correctLabel: "💡 Answer: ",
+                placeholder: "Drag words here!",
+                scorePrefix: "Stars: ",
+                langBtnText: "繁體中文", // 切換到中文的按鈕文字
+                loadEmpty: "Please select words first!"
+            }
+        }
+    };
+
+    // 預設語言：繁體中文
+    let currentLang = 'zh'; 
+    
+    // 遊戲變數
     let versesData = []; 
     let currentScore = 0;
     let lives = 5; 
@@ -331,12 +387,52 @@
     let shuffledSegments = []; 
     let playerAnswer = []; 
 
+    // --- 切換語言函數 ---
+    function toggleLanguage() {
+        // 切換狀態
+        currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+        
+        // 重置分數 (可選，這裡選擇重置以示公平)
+        currentScore = 0;
+        lives = 5;
+        
+        // 更新 UI 文字
+        updateUIText();
+        
+        // 重新載入對應語言的資料
+        loadVersesFromFile();
+    }
+
+    // --- 更新介面文字 ---
+    function updateUIText() {
+        const t = CONFIG[currentLang].ui;
+        
+        document.getElementById('zoneLabelAnswer').innerText = t.yourArrangement;
+        document.getElementById('zoneLabelOption').innerText = t.wordBricks;
+        document.getElementById('resetBtn').innerText = t.reset;
+        document.getElementById('checkBtn').innerText = t.loading; // 暫時顯示載入中
+        document.getElementById('langBtn').innerText = t.langBtnText;
+        document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
+        document.getElementById('correctionLabel').innerText = t.correctLabel;
+        
+        // 隱藏可能存在的提示框
+        hideCorrection();
+        document.getElementById('message').innerText = "";
+    }
+
     async function loadVersesFromFile() {
         const refDisplay = document.getElementById('referenceDisplay');
         const checkBtn = document.getElementById('checkBtn');
+        const t = CONFIG[currentLang].ui;
+
         try {
-            refDisplay.innerText = "正在連線到金句庫...";
-            const response = await fetch(DATA_URL + '?t=' + new Date().getTime());
+            refDisplay.innerText = t.loadingText;
+            checkBtn.disabled = true;
+            
+            // 根據語言選擇 URL
+            const url = CONFIG[currentLang].url;
+            
+            const response = await fetch(url + '?t=' + new Date().getTime());
             if (!response.ok) throw new Error('網路回應錯誤');
             const text = await response.text();
             const lines = text.split('\n');
@@ -356,21 +452,28 @@
                     if (segments.length > 1) versesData.push({ ref, segments });
                 }
             });
-            if (versesData.length === 0) throw new Error('找不到有效的金句資料');
-            console.log(`成功載入 ${versesData.length} 句金句。`);
+            if (versesData.length === 0) throw new Error('No Data');
+            
+            console.log(`Loaded ${versesData.length} verses for ${currentLang}.`);
             initGame();
         } catch (error) {
-            console.error("載入失敗:", error);
-            refDisplay.innerText = "⚠️ 金句載入失敗";
-            showMessage("無法讀取金句檔案，請檢查格式或網路。", "#ff4757");
-            checkBtn.innerText = "載入失敗";
+            console.error("Load failed:", error);
+            refDisplay.innerText = t.loadFail;
+            showMessage(t.loadFailMsg, "#ff4757");
+            checkBtn.innerText = "Error";
             checkBtn.disabled = true;
         }
     }
 
     function initGame() {
-        currentScore = 0;
-        lives = 5; 
+        const t = CONFIG[currentLang].ui;
+        // 注意：這裡不重置分數，除非是切換語言時已經重置過
+        // 如果只是遊戲結束後重來，則重置分數
+        // 為了簡單，initGame 被視為新的一局
+        
+        // 如果是 toggleLanguage 呼叫的，分數已經被重置。如果是 Game Over 呼叫的，也要重置。
+        // 我們假設 initGame 總是開始新遊戲
+        
         currentVerseIndex = Math.floor(Math.random() * versesData.length);
         document.getElementById('checkBtn').disabled = false;
         updateUI();
@@ -378,16 +481,19 @@
     }
 
     function loadLevel() {
+        const t = CONFIG[currentLang].ui;
         const verseObj = versesData[currentVerseIndex % versesData.length];
+        
         document.getElementById('referenceDisplay').innerText = verseObj.ref;
         showMessage("");
         hideCorrection();
+        
         document.getElementById('answerZone').className = "zone answer-zone";
         const checkBtn = document.getElementById('checkBtn');
-        checkBtn.innerText = "完成！";
+        checkBtn.innerText = t.check;
         checkBtn.onclick = checkAnswer;
-        /* --- 修改點：按鈕背景變數 --- */
         checkBtn.style.background = "var(--primary-blue)";
+        
         currentSegments = [...verseObj.segments];
         shuffledSegments = [...verseObj.segments];
         playerAnswer = [];
@@ -405,10 +511,13 @@
         const answerZone = document.getElementById('answerZone');
         const optionZone = document.getElementById('optionZone');
         const resetBtn = document.getElementById('resetBtn');
+        const t = CONFIG[currentLang].ui;
+
         answerZone.innerHTML = '';
         optionZone.innerHTML = '';
+        
         if (playerAnswer.length === 0) {
-            answerZone.innerHTML = '<div class="answer-placeholder">把詞語拉到這裡喔！</div>';
+            answerZone.innerHTML = `<div class="answer-placeholder">${t.placeholder}</div>`;
             resetBtn.disabled = true;
         } else {
             resetBtn.disabled = false;
@@ -437,7 +546,9 @@
     }
 
     function checkAnswer() {
-        if (playerAnswer.length === 0) { showMessage("還沒選詞語喔！加油！", "#ffb300"); return; }
+        const t = CONFIG[currentLang].ui;
+        
+        if (playerAnswer.length === 0) { showMessage(t.loadEmpty, "#ffb300"); return; }
         let isCorrect = true;
         if (playerAnswer.length !== currentSegments.length) isCorrect = false;
         else {
@@ -445,49 +556,91 @@
                 if (playerAnswer[i] !== currentSegments[i]) { isCorrect = false; break; }
             }
         }
+        
         const answerZone = document.getElementById('answerZone');
         const checkBtn = document.getElementById('checkBtn');
+        
         if (isCorrect) {
             currentScore++;
             answerZone.classList.add('correct');
-            /* --- 修改點：成功訊息顏色 --- */
-            showMessage("🎉 哇！你答對了！太棒了！", "var(--success-color)");
+            showMessage(t.correctMsg, "var(--success-color)");
             hideCorrection();
-            checkBtn.innerText = "下一關 ➔";
+            checkBtn.innerText = t.nextLevel;
             checkBtn.style.background = "var(--success-color)"; 
             checkBtn.onclick = nextLevel;
             triggerConfetti();
         } else {
             lives--;
             answerZone.classList.add('wrong');
-            /* --- 修改點：錯誤訊息顏色 --- */
-            showMessage("哎呀，順序不對，正確答案是：", "#ef5350");
+            showMessage(t.wrongMsg, "#ef5350");
             updateUI();
+            
+            // 根據語言組合正確答案
+            // 中文通常直接連接，英文通常需要空格
+            let correctText = currentSegments.join(currentLang === 'en' ? ' ' : '');
+            // 如果您的英文txt檔分段已經包含空格，則不需要額外加空格。
+            // 這裡為了保險，如果是英文且分段尾沒有空格，可以考慮加。
+            // 但為了還原金句本意，直接 join('') 也是可以的，視乎您 txt 的切分方式。
+            // 為了通用性，我們保持 join('')，假設您的 txt 已經包含了標點和空格。
             showCorrection(currentSegments.join(''));
-            checkBtn.innerText = "下一題 ➔";
+            
+            checkBtn.innerText = t.nextQuestion;
             checkBtn.style.background = "#ef5350"; 
             checkBtn.onclick = nextLevel; 
             setTimeout(() => { answerZone.classList.remove('wrong'); }, 1000);
-            if (lives <= 0) showModal("遊戲結束", `你獲得了 <b>${currentScore}</b> 顆星星！<br>休息一下再來挑戰！`, "重新開始");
+            
+            if (lives <= 0) {
+                let msg = t.gameOverMsg.replace('{score}', currentScore);
+                showModal(t.gameOverTitle, msg, t.restart);
+            }
         }
     }
 
     function nextLevel() { currentVerseIndex++; loadLevel(); updateUI(); }
-    function showCorrection(text) { document.getElementById('correctionText').innerText = text; document.getElementById('correctionBox').style.display = 'block'; }
+    
+    function showCorrection(text) { 
+        document.getElementById('correctionText').innerText = text; 
+        document.getElementById('correctionBox').style.display = 'block'; 
+    }
+    
     function hideCorrection() { document.getElementById('correctionBox').style.display = 'none'; }
-    function showMessage(text, color) { const msg = document.getElementById('message'); msg.innerText = text; msg.style.color = color || 'var(--text-color)'; }
+    
+    function showMessage(text, color) { 
+        const msg = document.getElementById('message'); 
+        msg.innerText = text; 
+        msg.style.color = color || 'var(--text-color)'; 
+    }
+    
     function updateUI() {
+        const t = CONFIG[currentLang].ui;
         let hearts = "";
         for(let i=0; i<lives; i++) hearts += "❤️";
         for(let i=lives; i<5; i++) hearts += "🤍"; 
         document.getElementById('livesDisplay').innerText = hearts;
-        document.getElementById('scoreDisplay').innerText = "星星: " + currentScore;
+        document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
     }
+    
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
-    /* --- 修改點：紙屑特效顏色改為藍/綠色系 --- */
+    
     function triggerConfetti() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#64b5f6', '#4db6ac', '#fff176', '#ffb74d'] }); }
-    function showModal(title, text, btnText) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalText').innerHTML = text; document.querySelector('#gameModal .btn-submit').innerText = btnText; document.getElementById('gameModal').style.display = 'flex'; }
-    function handleModalAction() { document.getElementById('gameModal').style.display = 'none'; initGame(); }
+    
+    function showModal(title, text, btnText) { 
+        document.getElementById('modalTitle').innerText = title; 
+        document.getElementById('modalText').innerHTML = text; 
+        document.getElementById('modalBtn').innerText = btnText;
+        document.getElementById('gameModal').style.display = 'flex'; 
+    }
+    
+    function handleModalAction() { 
+        document.getElementById('gameModal').style.display = 'none'; 
+        // 遊戲結束後重來，重置分數和生命
+        currentScore = 0;
+        lives = 5;
+        initGame(); 
+    }
+    
+    // 初始化：先設定預設文字，再載入資料
+    updateUIText();
     loadVersesFromFile();
 </script>
 
