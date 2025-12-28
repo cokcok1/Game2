@@ -75,7 +75,6 @@
 
         .lives { font-size: 1.2rem; letter-spacing: 2px; color: #e57373; }
         
-        /* --- 新增：語言切換按鈕樣式 --- */
         .lang-btn {
             background: #fff;
             border: 2px solid var(--primary-blue);
@@ -231,20 +230,32 @@
         #messageArea { min-height: 20px; text-align: center; }
         .msg-text { font-size: 0.9rem; font-weight: 700; margin: 2px 0; }
 
+        /* --- 修改點：優化答案框樣式 --- */
         .correction-box {
             display: none;
             background: #fffde7;
             border: 2px solid #fdd835;
             color: #f57f17;
-            padding: 8px;
+            padding: 8px 12px;
             border-radius: 12px;
             text-align: center;
-            font-size: 1rem;
             font-weight: 700;
             margin-bottom: 5px;
             animation: popIn 0.4s;
+            
+            /* 關鍵：限制高度並允許滾動 */
+            max-height: 80px;  /* 限制最大高度 */
+            overflow-y: auto;  /* 內容太多時出現滾動條 */
+            font-size: 0.9rem; /* 字體稍微縮小 */
+            line-height: 1.4;  /* 增加行距更好閱讀 */
+            white-space: normal; /* 確保文字換行 */
+            word-wrap: break-word;
         }
         
+        /* 美化答案框的滾動條 */
+        .correction-box::-webkit-scrollbar { width: 4px; }
+        .correction-box::-webkit-scrollbar-thumb { background: #fdd835; border-radius: 2px; }
+
         .answer-placeholder { width: 100%; text-align: center; color: #b0bec5; margin-top: 20px; font-weight: 700; font-size: 0.9rem; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
@@ -283,7 +294,7 @@
         </div>
         <div id="correctionBox" class="correction-box">
             <span id="correctionLabel">💡 正確答案：</span><span id="correctionText"></span>
-    </div>
+        </div>
     </div>
 
     <div class="answer-section">
@@ -309,7 +320,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 6.0 (Bilingual) | 2025.12.26</span>
+    <span>Ver 6.1 (Overflow Fix) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -321,7 +332,6 @@
 </div>
 
 <script>
-    // --- 1. 多語言設定 (i18n) ---
     const CONFIG = {
         zh: {
             url: 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt',
@@ -344,7 +354,7 @@
                 correctLabel: "💡 正確答案：",
                 placeholder: "把詞語拉到這裡喔！",
                 scorePrefix: "星星: ",
-                langBtnText: "English", // 切換到英文的按鈕文字
+                langBtnText: "English", 
                 loadEmpty: "請先選詞語喔！加油！"
             }
         },
@@ -369,16 +379,13 @@
                 correctLabel: "💡 Answer: ",
                 placeholder: "Drag words here!",
                 scorePrefix: "Stars: ",
-                langBtnText: "繁體中文", // 切換到中文的按鈕文字
+                langBtnText: "繁體中文", 
                 loadEmpty: "Please select words first!"
             }
         }
     };
 
-    // 預設語言：繁體中文
     let currentLang = 'zh'; 
-    
-    // 遊戲變數
     let versesData = []; 
     let currentScore = 0;
     let lives = 5; 
@@ -387,35 +394,23 @@
     let shuffledSegments = []; 
     let playerAnswer = []; 
 
-    // --- 切換語言函數 ---
     function toggleLanguage() {
-        // 切換狀態
         currentLang = (currentLang === 'zh') ? 'en' : 'zh';
-        
-        // 重置分數 (可選，這裡選擇重置以示公平)
         currentScore = 0;
         lives = 5;
-        
-        // 更新 UI 文字
         updateUIText();
-        
-        // 重新載入對應語言的資料
         loadVersesFromFile();
     }
 
-    // --- 更新介面文字 ---
     function updateUIText() {
         const t = CONFIG[currentLang].ui;
-        
         document.getElementById('zoneLabelAnswer').innerText = t.yourArrangement;
         document.getElementById('zoneLabelOption').innerText = t.wordBricks;
         document.getElementById('resetBtn').innerText = t.reset;
-        document.getElementById('checkBtn').innerText = t.loading; // 暫時顯示載入中
+        document.getElementById('checkBtn').innerText = t.loading; 
         document.getElementById('langBtn').innerText = t.langBtnText;
         document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
         document.getElementById('correctionLabel').innerText = t.correctLabel;
-        
-        // 隱藏可能存在的提示框
         hideCorrection();
         document.getElementById('message').innerText = "";
     }
@@ -429,9 +424,7 @@
             refDisplay.innerText = t.loadingText;
             checkBtn.disabled = true;
             
-            // 根據語言選擇 URL
             const url = CONFIG[currentLang].url;
-            
             const response = await fetch(url + '?t=' + new Date().getTime());
             if (!response.ok) throw new Error('網路回應錯誤');
             const text = await response.text();
@@ -466,14 +459,6 @@
     }
 
     function initGame() {
-        const t = CONFIG[currentLang].ui;
-        // 注意：這裡不重置分數，除非是切換語言時已經重置過
-        // 如果只是遊戲結束後重來，則重置分數
-        // 為了簡單，initGame 被視為新的一局
-        
-        // 如果是 toggleLanguage 呼叫的，分數已經被重置。如果是 Game Over 呼叫的，也要重置。
-        // 我們假設 initGame 總是開始新遊戲
-        
         currentVerseIndex = Math.floor(Math.random() * versesData.length);
         document.getElementById('checkBtn').disabled = false;
         updateUI();
@@ -575,14 +560,7 @@
             showMessage(t.wrongMsg, "#ef5350");
             updateUI();
             
-            // 根據語言組合正確答案
-            // 中文通常直接連接，英文通常需要空格
-            let correctText = currentSegments.join(currentLang === 'en' ? ' ' : '');
-            // 如果您的英文txt檔分段已經包含空格，則不需要額外加空格。
-            // 這裡為了保險，如果是英文且分段尾沒有空格，可以考慮加。
-            // 但為了還原金句本意，直接 join('') 也是可以的，視乎您 txt 的切分方式。
-            // 為了通用性，我們保持 join('')，假設您的 txt 已經包含了標點和空格。
-            showCorrection(currentSegments.join(''));
+            showCorrection(currentSegments.join(currentLang === 'en' ? ' ' : ''));
             
             checkBtn.innerText = t.nextQuestion;
             checkBtn.style.background = "#ef5350"; 
@@ -633,13 +611,11 @@
     
     function handleModalAction() { 
         document.getElementById('gameModal').style.display = 'none'; 
-        // 遊戲結束後重來，重置分數和生命
         currentScore = 0;
         lives = 5;
         initGame(); 
     }
     
-    // 初始化：先設定預設文字，再載入資料
     updateUIText();
     loadVersesFromFile();
 </script>
