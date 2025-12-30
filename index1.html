@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>信仰同行 · 聖經金句拼圖</title>
+
+<link rel="icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+:root{
+--bg:#e3f2fd;
+--main:#64b5f6;
+--dark:#1976d2;
+--text:#455a64;
+--ok:#4db6ac;
+--warn:#ef5350;
+}
+
+html,body{
+margin:0;height:100%;
+font-family:'Zen Maru Gothic',sans-serif;
+background:var(--bg);
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+color:var(--text);
+}
+
+.game{
+width:95%;
+max-width:600px;
+height:94dvh;
+background:#fff;
+border-radius:24px;
+padding:14px;
+display:flex;
+flex-direction:column;
+gap:8px;
+box-shadow:0 6px 0 rgba(0,0,0,.08);
+}
+
+.hud{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#f1f8e9;
+padding:6px 14px;
+border-radius:16px;
+border:2px dashed var(--main);
+}
+
+.lives{font-size:1.2rem}
+.score{font-weight:900;color:var(--dark)}
+
+.verse{
+text-align:center;
+font-size:1.4rem;
+font-weight:900;
+color:var(--main);
+margin:6px 0;
+}
+
+.label{
+font-weight:700;
+color:var(--main);
+margin-left:6px;
+}
+
+.zone{
+flex:1;
+border-radius:16px;
+padding:10px;
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+overflow-y:auto;
+}
+
+.answer{background:#eceff1;border:2px solid #cfd8dc}
+.answer.correct{background:#e0f2f1;border-color:var(--ok)}
+.answer.wrong{background:#ffebee;border-color:var(--warn)}
+
+.option{background:#e3f2fd;border:2px dashed var(--main)}
+
+.brick{
+background:#fff;
+border:2px solid var(--main);
+border-bottom:4px solid var(--main);
+border-radius:12px;
+padding:8px 12px;
+font-weight:700;
+cursor:pointer;
+}
+
+.footer{
+display:grid;
+grid-template-columns:1fr 2fr;
+gap:10px;
+}
+
+.btn{
+border:none;
+border-radius:18px;
+font-size:1.05rem;
+font-weight:900;
+color:#fff;
+padding:12px;
+cursor:pointer;
+}
+
+.reset{background:#90a4ae}
+.check{background:var(--main)}
+
+.msg{text-align:center;font-weight:700;font-size:.9rem}
+
+.watermark{
+position:fixed;
+bottom:6px;
+right:10px;
+font-size:.7rem;
+opacity:.5;
+text-align:right;
+}
+</style>
+</head>
+
+<body>
+<div class="game">
+
+<div class="hud">
+<div id="lives">❤️❤️❤️❤️❤️</div>
+<div class="score" id="score">星星 0</div>
+</div>
+
+<div class="verse" id="ref">載入中…</div>
+
+<div class="label">☁️ 心中默想</div>
+<div class="zone answer" id="answer"></div>
+
+<div class="label">🧩 記憶碎片</div>
+<div class="zone option" id="option"></div>
+
+<div class="msg" id="msg"></div>
+
+<div class="footer">
+<button class="btn reset" onclick="resetRound()">重整思緒</button>
+<button class="btn check" id="check" onclick="check()">完成默想</button>
+</div>
+
+</div>
+
+<div class="watermark">
+Faith Journey<br>
+v1.0 · Bible Verse Builder
+</div>
+
+<script>
+/* === 原有邏輯保留，只改文字 === */
+
+const URL='https://cokcok1.github.io/Game2/Bible-Verses-Life.txt';
+let data=[],i=0,score=0,lives=5;
+let correct=[],pool=[],answer=[];
+
+fetch(URL+'?t='+Date.now())
+.then(r=>r.text())
+.then(t=>{
+t.split('\n').forEach(l=>{
+if(!l)return;
+let [r,...c]=l.split(':');
+let seg=c.join(':').split('/').map(s=>s.trim());
+if(seg.length>1)data.push({r,seg});
+});
+shuffle(data);
+load();
+});
+
+function load(){
+let v=data[i%data.length];
+document.getElementById('ref').innerText=v.r;
+correct=[...v.seg];
+pool=[...v.seg];
+shuffle(pool);
+answer=[];
+draw();
+}
+
+function draw(){
+let a=document.getElementById('answer');
+let o=document.getElementById('option');
+a.innerHTML=o.innerHTML='';
+answer.forEach((t,i)=>{
+let d=brick(t,()=>{answer.splice(i,1);pool.push(t);draw()});
+a.appendChild(d);
+});
+pool.forEach((t,i)=>{
+let d=brick(t,()=>{pool.splice(i,1);answer.push(t);draw()});
+o.appendChild(d);
+});
+}
+
+function brick(t,fn){
+let d=document.createElement('div');
+d.className='brick';
+d.innerText=t;
+d.onclick=fn;
+return d;
+}
+
+function check(){
+if(answer.length===0)return msg('先靜一靜，再試一次 🤍');
+let ok=answer.join('')===correct.join('');
+let a=document.getElementById('answer');
+if(ok){
+score++;a.classList.add('correct');
+msg('你慢慢聽到神嘅話了 🌱');
+confetti();
+}else{
+lives--;a.classList.add('wrong');
+msg('唔緊要，學習本身就係旅程');
+if(lives<=0)return end();
+}
+update();
+setTimeout(()=>{i++;load();a.className='zone answer'},800);
+}
+
+function resetRound(){pool=pool.concat(answer);answer=[];draw();}
+function update(){
+document.getElementById('score').innerText='星星 '+score;
+document.getElementById('lives').innerText='❤️'.repeat(lives)+'🤍'.repeat(5-lives);
+}
+function msg(t){document.getElementById('msg').innerText=t}
+function end(){
+alert(`旅程暫停一下 🌤\n你得到 ${score} 顆星星`);
+score=0;lives=5;i=0;shuffle(data);load();update();
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.random()* (i+1)|0;[a[i],a[j]]=[a[j],a[i]]}}
+</script>
+</body>
+</html>
