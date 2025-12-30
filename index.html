@@ -58,9 +58,7 @@
             margin-bottom: env(safe-area-inset-bottom);
         }
 
-        .header-section {
-            flex: 0 0 auto; 
-        }
+        .header-section { flex: 0 0 auto; }
 
         .hud {
             display: flex;
@@ -88,10 +86,7 @@
             transition: all 0.1s;
             box-shadow: 0 2px 0 rgba(0,0,0,0.05);
         }
-        .lang-btn:active {
-            transform: translateY(2px);
-            box-shadow: none;
-        }
+        .lang-btn:active { transform: translateY(2px); box-shadow: none; }
 
         .score-board { 
             color: var(--primary-dark); 
@@ -128,19 +123,8 @@
             margin-bottom: 2px;
         }
 
-        .answer-section {
-            flex: 1; 
-            display: flex;
-            flex-direction: column;
-            min-height: 0; 
-        }
-
-        .option-section {
-            flex: 1; 
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
+        .answer-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        .option-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 
         .zone {
             flex: 1; 
@@ -158,18 +142,11 @@
         .zone::-webkit-scrollbar { width: 5px; }
         .zone::-webkit-scrollbar-thumb { background: #b3e5fc; border-radius: 3px; }
 
-        .answer-zone {
-            background-color: #eceff1;
-            border: 2px solid #cfd8dc;
-        }
-
+        .answer-zone { background-color: #eceff1; border: 2px solid #cfd8dc; }
         .answer-zone.correct { background-color: #e0f2f1; border-color: var(--success-color); }
         .answer-zone.wrong { background-color: #ffebee; border-color: #ef5350; animation: shake 0.4s; }
 
-        .option-zone {
-            background-color: #e3f2fd;
-            border: 2px dashed var(--primary-blue);
-        }
+        .option-zone { background-color: #e3f2fd; border: 2px dashed var(--primary-blue); }
 
         .word-brick {
             background: #fff;
@@ -187,25 +164,12 @@
             -webkit-tap-highlight-color: transparent;
         }
         
-        .word-brick:active {
-            transform: translateY(2px);
-            border-bottom-width: 2px;
-            margin-top: 2px;
-        }
-        
+        .word-brick:active { transform: translateY(2px); border-bottom-width: 2px; margin-top: 2px; }
         .word-brick:hover { background-color: #e3f2fd; }
 
-        .footer-section {
-            flex: 0 0 auto;
-            margin-top: 5px;
-            padding-bottom: 5px; 
-        }
+        .footer-section { flex: 0 0 auto; margin-top: 5px; padding-bottom: 5px; }
 
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 10px;
-        }
+        .controls { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
 
         .btn {
             border: none;
@@ -230,7 +194,6 @@
         #messageArea { min-height: 20px; text-align: center; }
         .msg-text { font-size: 0.9rem; font-weight: 700; margin: 2px 0; }
 
-        /* --- 修改點：優化答案框樣式 --- */
         .correction-box {
             display: none;
             background: #fffde7;
@@ -242,17 +205,14 @@
             font-weight: 700;
             margin-bottom: 5px;
             animation: popIn 0.4s;
-            
-            /* 關鍵：限制高度並允許滾動 */
-            max-height: 80px;  /* 限制最大高度 */
-            overflow-y: auto;  /* 內容太多時出現滾動條 */
-            font-size: 0.9rem; /* 字體稍微縮小 */
-            line-height: 1.4;  /* 增加行距更好閱讀 */
-            white-space: normal; /* 確保文字換行 */
+            max-height: 80px;  
+            overflow-y: auto;  
+            font-size: 0.9rem; 
+            line-height: 1.4;  
+            white-space: normal; 
             word-wrap: break-word;
         }
         
-        /* 美化答案框的滾動條 */
         .correction-box::-webkit-scrollbar { width: 4px; }
         .correction-box::-webkit-scrollbar-thumb { background: #fdd835; border-radius: 2px; }
 
@@ -320,7 +280,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 6.1 (Overflow Fix) | 2025.12.26</span>
+    <span>Ver 6.2 (Random Shuffle) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -447,7 +407,10 @@
             });
             if (versesData.length === 0) throw new Error('No Data');
             
-            console.log(`Loaded ${versesData.length} verses for ${currentLang}.`);
+            // --- 修改點 1：載入後立即洗牌，確保題目順序完全隨機 ---
+            shuffleArray(versesData);
+            
+            console.log(`Loaded and shuffled ${versesData.length} verses.`);
             initGame();
         } catch (error) {
             console.error("Load failed:", error);
@@ -459,7 +422,8 @@
     }
 
     function initGame() {
-        currentVerseIndex = Math.floor(Math.random() * versesData.length);
+        // 因為資料已經在 loadVersesFromFile 洗牌過了，這裡直接從第 0 筆開始
+        currentVerseIndex = 0; 
         document.getElementById('checkBtn').disabled = false;
         updateUI();
         loadLevel();
@@ -467,6 +431,7 @@
 
     function loadLevel() {
         const t = CONFIG[currentLang].ui;
+        // 使用 % 來確保題目可以循環 (如果玩超過 101 題，會回到第 1 題，但順序仍是剛剛洗好的)
         const verseObj = versesData[currentVerseIndex % versesData.length];
         
         document.getElementById('referenceDisplay').innerText = verseObj.ref;
@@ -613,6 +578,8 @@
         document.getElementById('gameModal').style.display = 'none'; 
         currentScore = 0;
         lives = 5;
+        // 遊戲結束後，重新洗牌
+        shuffleArray(versesData);
         initGame(); 
     }
     
