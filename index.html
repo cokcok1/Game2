@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>快樂學聖經 / Bible Verse Game</title>
+    
+    <link rel="icon" type="image/png" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+    <link rel="apple-touch-icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+    <link rel="shortcut icon" href="https://cokcok1.github.io/Game2/%E5%BF%AB%E6%A8%82%E5%AD%B8%E8%81%96%E7%B6%93.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg-blue: #e3f2fd;
+            --primary-blue: #64b5f6;
+            --primary-dark: #1976d2;
+            --text-color: #546e7a;
+            --success-color: #4db6ac;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh; 
+            height: 100dvh; 
+            overflow: hidden;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: var(--bg-blue);
+            background-image: radial-gradient(#bbdefb 15%, transparent 16%), radial-gradient(#bbdefb 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            width: 95%; 
+            max-width: 600px;
+            height: 94vh; 
+            height: 94dvh; 
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 24px;
+            box-shadow: 0 5px 0 rgba(100, 181, 246, 0.3);
+            border: 3px solid #fff;
+            display: flex;
+            flex-direction: column; 
+            gap: 8px; 
+            box-sizing: border-box;
+            position: relative;
+            margin-bottom: env(safe-area-inset-bottom);
+        }
+
+        .header-section { flex: 0 0 auto; }
+
+        /* HUD 樣式調整以容納更多按鈕 */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f1f8e9;
+            padding: 6px 10px;
+            border-radius: 15px;
+            border: 2px dashed var(--primary-blue);
+            margin-bottom: 5px;
+            gap: 5px;
+        }
+
+        .lives { font-size: 1.1rem; letter-spacing: 1px; color: #e57373; white-space: nowrap; }
+        
+        /* 按鈕群組 */
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .small-btn {
+            background: #fff;
+            border: 2px solid var(--primary-blue);
+            border-radius: 10px;
+            color: var(--primary-blue);
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-weight: 700;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+            white-space: nowrap;
+        }
+        .small-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* 模式按鈕特定樣式 */
+        .mode-btn {
+            background-color: #e3f2fd; 
+            border-style: dashed;
+        }
+
+        .score-board { 
+            color: var(--primary-dark); 
+            font-weight: 900; 
+            font-size: 0.95rem;
+            background: #fff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.05);
+            white-space: nowrap;
+        }
+
+        .verse-card {
+            text-align: center;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .verse-ref {
+            font-size: 1.3rem; 
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-shadow: 2px 2px 0 #fff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .zone-label {
+            color: var(--primary-blue);
+            font-weight: 700;
+            margin-left: 5px;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .answer-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        .option-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+        .zone {
+            flex: 1; 
+            border-radius: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: flex-start; 
+            gap: 8px;
+            padding: 10px;
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .zone::-webkit-scrollbar { width: 5px; }
+        .zone::-webkit-scrollbar-thumb { background: #b3e5fc; border-radius: 3px; }
+
+        .answer-zone { background-color: #eceff1; border: 2px solid #cfd8dc; }
+        .answer-zone.correct { background-color: #e0f2f1; border-color: var(--success-color); }
+        .answer-zone.wrong { background-color: #ffebee; border-color: #ef5350; animation: shake 0.4s; }
+
+        .option-zone { background-color: #e3f2fd; border: 2px dashed var(--primary-blue); }
+
+        .word-brick {
+            background: #fff;
+            border: 2px solid var(--primary-blue);
+            border-bottom: 4px solid var(--primary-blue);
+            border-radius: 12px;
+            padding: 8px 12px; 
+            font-size: 0.95rem; 
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+            height: fit-content;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .word-brick:active { transform: translateY(2px); border-bottom-width: 2px; margin-top: 2px; }
+        .word-brick:hover { background-color: #e3f2fd; }
+
+        .footer-section { flex: 0 0 auto; margin-top: 5px; padding-bottom: 5px; }
+
+        .controls { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+        .btn {
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            border-radius: 20px;
+            cursor: pointer;
+            color: white;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            position: relative; 
+            z-index: 10;
+        }
+
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-reset { background: #90a4ae; }
+        .btn-submit { background: var(--primary-blue); }
+        .btn-submit:hover { filter: brightness(1.05); }
+        .btn:disabled { background: #cfd8dc; color: #90a4ae; box-shadow: none; transform: translateY(4px); }
+
+        #messageArea { min-height: 20px; text-align: center; }
+        .msg-text { font-size: 0.9rem; font-weight: 700; margin: 2px 0; }
+
+        .correction-box {
+            display: none;
+            background: #fffde7;
+            border: 2px solid #fdd835;
+            color: #f57f17;
+            padding: 8px 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 5px;
+            animation: popIn 0.4s;
+            max-height: 80px;  
+            overflow-y: auto;  
+            font-size: 0.9rem; 
+            line-height: 1.4;  
+            white-space: normal; 
+            word-wrap: break-word;
+        }
+        
+        .correction-box::-webkit-scrollbar { width: 4px; }
+        .correction-box::-webkit-scrollbar-thumb { background: #fdd835; border-radius: 2px; }
+
+        .answer-placeholder { width: 100%; text-align: center; color: #b0bec5; margin-top: 20px; font-weight: 700; font-size: 0.9rem; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-blue); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
+        
+        .watermark { 
+            position: fixed; 
+            bottom: 5px; 
+            right: 10px; 
+            text-align: right; 
+            font-size: 0.7rem; 
+            color: var(--primary-dark); 
+            opacity: 0.6; 
+            font-weight: 700; 
+            z-index: 5; 
+            pointer-events: none; 
+        }
+        .watermark span { display: block; font-size: 0.6rem; font-weight: 400; }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header-section">
+        <div class="hud">
+            <div class="lives" id="livesDisplay">❤️❤️❤️❤️❤️</div>
+            <div class="btn-group">
+                <button class="small-btn" id="langBtn" onclick="toggleLanguage()">English</button>
+                <button class="small-btn mode-btn" id="modeBtn" onclick="toggleMode()">🔢 順序</button>
+            </div>
+            <div class="score-board" id="scoreDisplay">星星: 0</div>
+    </div>
+        <div class="verse-card">
+            <div class="verse-ref" id="referenceDisplay">Loading...</div>
+        </div>
+        <div id="correctionBox" class="correction-box">
+            <span id="correctionLabel">💡 正確答案：</span><span id="correctionText"></span>
+        </div>
+    </div>
+
+    <div class="answer-section">
+        <div class="zone-label" id="zoneLabelAnswer">☁️ 你的排列</div>
+        <div class="zone answer-zone" id="answerZone"></div>
+    </div>
+
+    <div class="option-section">
+        <div class="zone-label" id="zoneLabelOption">🦕 詞語積木</div>
+        <div class="zone option-zone" id="optionZone"></div>
+    </div>
+
+    <div class="footer-section">
+        <div id="messageArea">
+            <div class="msg-text" id="message"></div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重來</button>
+            <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>載入中...</button>
+        </div>
+    </div>
+</div>
+
+<div class="watermark">
+    Powered by Gemini
+    <span>Ver 6.3 (Seq/Rand Mode) | 2025.12.26</span>
+</div>
+
+<div class="modal-overlay" id="gameModal">
+    <div class="modal-card">
+        <h2 style="color:var(--primary-dark); margin-top:0;" id="modalTitle">TITLE</h2>
+        <p id="modalText" style="color:#666; font-size:1.1rem; margin-bottom:20px;">Text</p>
+        <button class="btn btn-submit" id="modalBtn" style="width:100%" onclick="handleModalAction()">繼續玩</button>
+    </div>
+</div>
+
+<script>
+    const CONFIG = {
+        zh: {
+            url: 'https://cokcok1.github.io/Game2/Bible-Verses-Life.txt',
+            ui: {
+                yourArrangement: "☁️ 你的排列",
+                wordBricks: "🦕 詞語積木",
+                reset: "重來",
+                check: "完成！",
+                loading: "載入中...",
+                nextLevel: "下一關 ➔",
+                nextQuestion: "下一題 ➔",
+                correctMsg: "🎉 哇！你答對了！太棒了！",
+                wrongMsg: "哎呀，順序不對，正確答案是：",
+                gameOverTitle: "遊戲結束",
+                gameOverMsg: "你獲得了 <b>{score}</b> 顆星星！<br>休息一下再來挑戰！",
+                restart: "重新開始",
+                loadingText: "正在載入金句...",
+                loadFail: "⚠️ 金句載入失敗",
+                loadFailMsg: "無法讀取金句檔案，請檢查格式或網路。",
+                correctLabel: "💡 正確答案：",
+                placeholder: "把詞語拉到這裡喔！",
+                scorePrefix: "星星: ",
+                langBtnText: "English", 
+                loadEmpty: "請先選詞語喔！加油！",
+                // 新增模式文字
+                modeRandom: "🔀 隨機",
+                modeSeq: "🔢 順序"
+            }
+        },
+        en: {
+            url: 'https://cokcok1.github.io/Game2/Bible-Verses-E.txt',
+            ui: {
+                yourArrangement: "☁️ Your Arrangement",
+                wordBricks: "🦕 Word Bricks",
+                reset: "Reset",
+                check: "Check!",
+                loading: "Loading...",
+                nextLevel: "Next Level ➔",
+                nextQuestion: "Next Question ➔",
+                correctMsg: "🎉 Awesome! You got it right!",
+                wrongMsg: "Oops, incorrect. The answer is:",
+                gameOverTitle: "Game Over",
+                gameOverMsg: "You earned <b>{score}</b> Stars!<br>Take a rest and try again!",
+                restart: "Play Again",
+                loadingText: "Loading Verses...",
+                loadFail: "⚠️ Load Failed",
+                loadFailMsg: "Cannot load verses file.",
+                correctLabel: "💡 Answer: ",
+                placeholder: "Drag words here!",
+                scorePrefix: "Stars: ",
+                langBtnText: "繁體中文", 
+                loadEmpty: "Please select words first!",
+                modeRandom: "🔀 Random",
+                modeSeq: "🔢 Order"
+            }
+        }
+    };
+
+    let currentLang = 'zh'; 
+    // 新增：隨機模式狀態 (中文預設為 false 順序，英文預設為 true 隨機)
+    let isRandomMode = false; 
+
+    let rawVersesData = []; // 儲存原始讀入的順序 (第1週...第52週)
+    let gameVersesData = []; // 實際遊戲用的陣列 (可能是洗牌過的，也可能是原始的)
+    
+    let currentScore = 0;
+    let lives = 5; 
+    let currentVerseIndex = 0;
+    let currentSegments = []; 
+    let shuffledSegments = []; 
+    let playerAnswer = []; 
+
+    function toggleLanguage() {
+        currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+        
+        // 切換語言時的預設模式邏輯
+        if (currentLang === 'zh') {
+            isRandomMode = false; // 中文預設順序 (配合52週計畫)
+        } else {
+            isRandomMode = true;  // 英文預設隨機 (保持 V6.2 體驗)
+        }
+        
+        currentScore = 0;
+        lives = 5;
+        updateUIText();
+        loadVersesFromFile();
+    }
+
+    // 新增：切換遊戲模式 (順序 <-> 隨機)
+    function toggleMode() {
+        isRandomMode = !isRandomMode;
+        
+        // 重置遊戲狀態
+        currentScore = 0;
+        lives = 5;
+        
+        // 更新按鈕文字
+        updateUIText();
+        
+        // 重新初始化遊戲數據 (根據新模式決定是否洗牌)
+        prepareGameData();
+        initGame();
+    }
+
+    function updateUIText() {
+        const t = CONFIG[currentLang].ui;
+        document.getElementById('zoneLabelAnswer').innerText = t.yourArrangement;
+        document.getElementById('zoneLabelOption').innerText = t.wordBricks;
+        document.getElementById('resetBtn').innerText = t.reset;
+        document.getElementById('checkBtn').innerText = t.loading; 
+        document.getElementById('langBtn').innerText = t.langBtnText;
+        document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
+        document.getElementById('correctionLabel').innerText = t.correctLabel;
+        
+        // 更新模式按鈕文字
+        document.getElementById('modeBtn').innerText = isRandomMode ? t.modeRandom : t.modeSeq;
+        
+        hideCorrection();
+        document.getElementById('message').innerText = "";
+    }
+
+    async function loadVersesFromFile() {
+        const refDisplay = document.getElementById('referenceDisplay');
+        const checkBtn = document.getElementById('checkBtn');
+        const t = CONFIG[currentLang].ui;
+
+        try {
+            refDisplay.innerText = t.loadingText;
+            checkBtn.disabled = true;
+            
+            const url = CONFIG[currentLang].url;
+            const response = await fetch(url + '?t=' + new Date().getTime());
+            if (!response.ok) throw new Error('網路回應錯誤');
+            const text = await response.text();
+            const lines = text.split('\n');
+            
+            rawVersesData = []; // 清空原始資料
+            
+            lines.forEach(line => {
+                if (!line || line.trim() === "") return;
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    let ref = parts[0].trim();
+                    let contentStartIndex = 1;
+                    if (parts.length > 2 && /^\s*[\d\-\,\s]+\s*$/.test(parts[1])) {
+                        ref += ":" + parts[1].trim(); 
+                        contentStartIndex = 2;
+                    }
+                    const contentRaw = parts.slice(contentStartIndex).join(':').trim();
+                    const segments = contentRaw.split('/').map(s => s.trim()).filter(s => s.length > 0);
+                    if (segments.length > 1) rawVersesData.push({ ref, segments });
+                }
+            });
+            if (rawVersesData.length === 0) throw new Error('No Data');
+            
+            console.log(`Loaded ${rawVersesData.length} verses.`);
+            
+            // 準備遊戲數據
+            prepareGameData();
+            initGame();
+        } catch (error) {
+            console.error("Load failed:", error);
+            refDisplay.innerText = t.loadFail;
+            showMessage(t.loadFailMsg, "#ff4757");
+            checkBtn.innerText = "Error";
+            checkBtn.disabled = true;
+        }
+    }
+
+    // 新增：準備數據函數
+    function prepareGameData() {
+        // 複製原始數據到遊戲數據
+        gameVersesData = [...rawVersesData];
+        
+        if (isRandomMode) {
+            // 如果是隨機模式，就洗牌
+            shuffleArray(gameVersesData);
+        } else {
+            // 如果是順序模式，不洗牌 (保持 1..52 週的順序)
+        }
+    }
+
+    function initGame() {
+        currentVerseIndex = 0; 
+        document.getElementById('checkBtn').disabled = false;
+        updateUI();
+        loadLevel();
+    }
+
+    function loadLevel() {
+        const t = CONFIG[currentLang].ui;
+        // 使用 gameVersesData (可能是順序也可能是隨機)
+        const verseObj = gameVersesData[currentVerseIndex % gameVersesData.length];
+        
+        document.getElementById('referenceDisplay').innerText = verseObj.ref;
+        showMessage("");
+        hideCorrection();
+        
+        document.getElementById('answerZone').className = "zone answer-zone";
+        const checkBtn = document.getElementById('checkBtn');
+        checkBtn.innerText = t.check;
+        checkBtn.onclick = checkAnswer;
+        checkBtn.style.background = "var(--primary-blue)";
+        
+        currentSegments = [...verseObj.segments];
+        shuffledSegments = [...verseObj.segments];
+        playerAnswer = [];
+        shuffleArray(shuffledSegments);
+        renderZones();
+    }
+
+    function resetRound() {
+        shuffledSegments = shuffledSegments.concat(playerAnswer);
+        playerAnswer = [];
+        renderZones();
+    }
+
+    function renderZones() {
+        const answerZone = document.getElementById('answerZone');
+        const optionZone = document.getElementById('optionZone');
+        const resetBtn = document.getElementById('resetBtn');
+        const t = CONFIG[currentLang].ui;
+
+        answerZone.innerHTML = '';
+        optionZone.innerHTML = '';
+        
+        if (playerAnswer.length === 0) {
+            answerZone.innerHTML = `<div class="answer-placeholder">${t.placeholder}</div>`;
+            resetBtn.disabled = true;
+        } else {
+            resetBtn.disabled = false;
+        }
+        playerAnswer.forEach((text, index) => { answerZone.appendChild(createBrick(text, true, index)); });
+        shuffledSegments.forEach((text, index) => { optionZone.appendChild(createBrick(text, false, index)); });
+    }
+
+    function createBrick(text, isAnswerZone, index) {
+        let div = document.createElement('div');
+        div.className = 'word-brick';
+        div.innerText = text;
+        div.onclick = function() {
+            if (isAnswerZone) {
+                const word = playerAnswer[index];
+                playerAnswer.splice(index, 1);
+                shuffledSegments.push(word);
+            } else {
+                const word = shuffledSegments[index];
+                shuffledSegments.splice(index, 1);
+                playerAnswer.push(word);
+            }
+            renderZones();
+        };
+        return div;
+    }
+
+    function checkAnswer() {
+        const t = CONFIG[currentLang].ui;
+        
+        if (playerAnswer.length === 0) { showMessage(t.loadEmpty, "#ffb300"); return; }
+        let isCorrect = true;
+        if (playerAnswer.length !== currentSegments.length) isCorrect = false;
+        else {
+            for (let i = 0; i < currentSegments.length; i++) {
+                if (playerAnswer[i] !== currentSegments[i]) { isCorrect = false; break; }
+            }
+        }
+        
+        const answerZone = document.getElementById('answerZone');
+        const checkBtn = document.getElementById('checkBtn');
+        
+        if (isCorrect) {
+            currentScore++;
+            answerZone.classList.add('correct');
+            showMessage(t.correctMsg, "var(--success-color)");
+            hideCorrection();
+            checkBtn.innerText = t.nextLevel;
+            checkBtn.style.background = "var(--success-color)"; 
+            checkBtn.onclick = nextLevel;
+            triggerConfetti();
+        } else {
+            lives--;
+            answerZone.classList.add('wrong');
+            showMessage(t.wrongMsg, "#ef5350");
+            updateUI();
+            
+            showCorrection(currentSegments.join(currentLang === 'en' ? ' ' : ''));
+            
+            checkBtn.innerText = t.nextQuestion;
+            checkBtn.style.background = "#ef5350"; 
+            checkBtn.onclick = nextLevel; 
+            setTimeout(() => { answerZone.classList.remove('wrong'); }, 1000);
+            
+            if (lives <= 0) {
+                let msg = t.gameOverMsg.replace('{score}', currentScore);
+                showModal(t.gameOverTitle, msg, t.restart);
+            }
+        }
+    }
+
+    function nextLevel() { currentVerseIndex++; loadLevel(); updateUI(); }
+    
+    function showCorrection(text) { 
+        document.getElementById('correctionText').innerText = text; 
+        document.getElementById('correctionBox').style.display = 'block'; 
+    }
+    
+    function hideCorrection() { document.getElementById('correctionBox').style.display = 'none'; }
+    
+    function showMessage(text, color) { 
+        const msg = document.getElementById('message'); 
+        msg.innerText = text; 
+        msg.style.color = color || 'var(--text-color)'; 
+    }
+    
+    function updateUI() {
+        const t = CONFIG[currentLang].ui;
+        let hearts = "";
+        for(let i=0; i<lives; i++) hearts += "❤️";
+        for(let i=lives; i<5; i++) hearts += "🤍"; 
+        document.getElementById('livesDisplay').innerText = hearts;
+        document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
+    }
+    
+    function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+    
+    function triggerConfetti() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#64b5f6', '#4db6ac', '#fff176', '#ffb74d'] }); }
+    
+    function showModal(title, text, btnText) { 
+        document.getElementById('modalTitle').innerText = title; 
+        document.getElementById('modalText').innerHTML = text; 
+        document.getElementById('modalBtn').innerText = btnText;
+        document.getElementById('gameModal').style.display = 'flex'; 
+    }
+    
+    function handleModalAction() { 
+        document.getElementById('gameModal').style.display = 'none'; 
+        currentScore = 0;
+        lives = 5;
+        // 遊戲結束後重來，根據當前模式決定是否重新洗牌
+        prepareGameData();
+        initGame(); 
+    }
+    
+    updateUIText();
+    loadVersesFromFile();
+</script>
+
+</body>
+</html>
