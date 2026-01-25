@@ -60,7 +60,6 @@
 
         .header-section { flex: 0 0 auto; }
 
-        /* HUD 樣式調整以容納更多按鈕 */
         .hud {
             display: flex;
             justify-content: space-between;
@@ -75,7 +74,6 @@
 
         .lives { font-size: 1.1rem; letter-spacing: 1px; color: #e57373; white-space: nowrap; }
         
-        /* 按鈕群組 */
         .btn-group {
             display: flex;
             gap: 5px;
@@ -97,7 +95,6 @@
         }
         .small-btn:active { transform: translateY(2px); box-shadow: none; }
 
-        /* 模式按鈕特定樣式 */
         .mode-btn {
             background-color: #e3f2fd; 
             border-style: dashed;
@@ -299,7 +296,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 6.3 (Seq/Rand Mode) | 2025.12.26</span>
+    <span>Ver 6.4 (Fix Title) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -335,7 +332,6 @@
                 scorePrefix: "星星: ",
                 langBtnText: "English", 
                 loadEmpty: "請先選詞語喔！加油！",
-                // 新增模式文字
                 modeRandom: "🔀 隨機",
                 modeSeq: "🔢 順序"
             }
@@ -370,11 +366,10 @@
     };
 
     let currentLang = 'zh'; 
-    // 新增：隨機模式狀態 (中文預設為 false 順序，英文預設為 true 隨機)
     let isRandomMode = false; 
 
-    let rawVersesData = []; // 儲存原始讀入的順序 (第1週...第52週)
-    let gameVersesData = []; // 實際遊戲用的陣列 (可能是洗牌過的，也可能是原始的)
+    let rawVersesData = []; 
+    let gameVersesData = []; 
     
     let currentScore = 0;
     let lives = 5; 
@@ -386,11 +381,13 @@
     function toggleLanguage() {
         currentLang = (currentLang === 'zh') ? 'en' : 'zh';
         
-        // 切換語言時的預設模式邏輯
+        // 切換語言時的邏輯：
+        // 中文 -> 預設順序
+        // 英文 -> 強制隨機 (隱藏按鈕在 updateUIText 處理)
         if (currentLang === 'zh') {
-            isRandomMode = false; // 中文預設順序 (配合52週計畫)
+            isRandomMode = false; 
         } else {
-            isRandomMode = true;  // 英文預設隨機 (保持 V6.2 體驗)
+            isRandomMode = true;  
         }
         
         currentScore = 0;
@@ -399,18 +396,11 @@
         loadVersesFromFile();
     }
 
-    // 新增：切換遊戲模式 (順序 <-> 隨機)
     function toggleMode() {
         isRandomMode = !isRandomMode;
-        
-        // 重置遊戲狀態
         currentScore = 0;
         lives = 5;
-        
-        // 更新按鈕文字
         updateUIText();
-        
-        // 重新初始化遊戲數據 (根據新模式決定是否洗牌)
         prepareGameData();
         initGame();
     }
@@ -425,8 +415,14 @@
         document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
         document.getElementById('correctionLabel').innerText = t.correctLabel;
         
-        // 更新模式按鈕文字
-        document.getElementById('modeBtn').innerText = isRandomMode ? t.modeRandom : t.modeSeq;
+        // --- 修改點 2：英文版隱藏模式按鈕 ---
+        const modeBtn = document.getElementById('modeBtn');
+        if (currentLang === 'en') {
+            modeBtn.style.display = 'none';
+        } else {
+            modeBtn.style.display = 'inline-block';
+            modeBtn.innerText = isRandomMode ? t.modeRandom : t.modeSeq;
+        }
         
         hideCorrection();
         document.getElementById('message').innerText = "";
@@ -447,28 +443,43 @@
             const text = await response.text();
             const lines = text.split('\n');
             
-            rawVersesData = []; // 清空原始資料
+            rawVersesData = []; 
             
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    let ref = parts[0].trim();
-                    let contentStartIndex = 1;
-                    if (parts.length > 2 && /^\s*[\d\-\,\s]+\s*$/.test(parts[1])) {
-                        ref += ":" + parts[1].trim(); 
-                        contentStartIndex = 2;
-                    }
-                    const contentRaw = parts.slice(contentStartIndex).join(':').trim();
+                
+                // --- 修改點 1：更聰明的解析邏輯 ---
+                // 先檢查是否有 " : /" (新中文格式的特徵)
+                if (line.includes(" : /")) {
+                    // 中文新格式：用 " : /" 來切分標題和內容
+                    // 這樣就算標題內有冒號 (如 11:29) 也不會被切斷
+                    const splitIdx = line.indexOf(" : /");
+                    const ref = line.substring(0, splitIdx).trim();
+                    const contentRaw = line.substring(splitIdx + 4).trim(); // +4 是為了跳過 " : /"
+                    
                     const segments = contentRaw.split('/').map(s => s.trim()).filter(s => s.length > 0);
-                    if (segments.length > 1) rawVersesData.push({ ref, segments });
+                    if (segments.length > 0) rawVersesData.push({ ref, segments });
+                    
+                } else {
+                    // 英文版或舊格式：維持原本的邏輯
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        let ref = parts[0].trim();
+                        let contentStartIndex = 1;
+                        if (parts.length > 2 && /^\s*[\d\-\,\s]+\s*$/.test(parts[1])) {
+                            ref += ":" + parts[1].trim(); 
+                            contentStartIndex = 2;
+                        }
+                        const contentRaw = parts.slice(contentStartIndex).join(':').trim();
+                        const segments = contentRaw.split('/').map(s => s.trim()).filter(s => s.length > 0);
+                        if (segments.length > 1) rawVersesData.push({ ref, segments });
+                    }
                 }
             });
-            if (rawVersesData.length === 0) throw new Error('No Data');
             
+            if (rawVersesData.length === 0) throw new Error('No Data');
             console.log(`Loaded ${rawVersesData.length} verses.`);
             
-            // 準備遊戲數據
             prepareGameData();
             initGame();
         } catch (error) {
@@ -480,16 +491,10 @@
         }
     }
 
-    // 新增：準備數據函數
     function prepareGameData() {
-        // 複製原始數據到遊戲數據
         gameVersesData = [...rawVersesData];
-        
         if (isRandomMode) {
-            // 如果是隨機模式，就洗牌
             shuffleArray(gameVersesData);
-        } else {
-            // 如果是順序模式，不洗牌 (保持 1..52 週的順序)
         }
     }
 
@@ -502,7 +507,6 @@
 
     function loadLevel() {
         const t = CONFIG[currentLang].ui;
-        // 使用 gameVersesData (可能是順序也可能是隨機)
         const verseObj = gameVersesData[currentVerseIndex % gameVersesData.length];
         
         document.getElementById('referenceDisplay').innerText = verseObj.ref;
@@ -649,7 +653,6 @@
         document.getElementById('gameModal').style.display = 'none'; 
         currentScore = 0;
         lives = 5;
-        // 遊戲結束後重來，根據當前模式決定是否重新洗牌
         prepareGameData();
         initGame(); 
     }
