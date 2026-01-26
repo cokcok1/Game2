@@ -19,6 +19,7 @@
             --primary-dark: #1976d2;
             --text-color: #546e7a;
             --success-color: #4db6ac;
+            --explain-color: #9c27b0; /* 解釋按鈕的紫色 */
         }
 
         html, body {
@@ -74,10 +75,7 @@
 
         .lives { font-size: 1.1rem; letter-spacing: 1px; color: #e57373; white-space: nowrap; }
         
-        .btn-group {
-            display: flex;
-            gap: 5px;
-        }
+        .btn-group { display: flex; gap: 5px; }
 
         .small-btn {
             background: #fff;
@@ -95,10 +93,7 @@
         }
         .small-btn:active { transform: translateY(2px); box-shadow: none; }
 
-        .mode-btn {
-            background-color: #e3f2fd; 
-            border-style: dashed;
-        }
+        .mode-btn { background-color: #e3f2fd; border-style: dashed; }
 
         .score-board { 
             color: var(--primary-dark); 
@@ -182,7 +177,12 @@
 
         .footer-section { flex: 0 0 auto; margin-top: 5px; padding-bottom: 5px; }
 
-        .controls { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+        /* Controls Grid: 動態調整列數 */
+        .controls { 
+            display: grid; 
+            grid-template-columns: 1fr 2fr; /* 預設英文模式佈局 */
+            gap: 10px; 
+        }
 
         .btn {
             border: none;
@@ -202,7 +202,12 @@
         .btn-reset { background: #90a4ae; }
         .btn-submit { background: var(--primary-blue); }
         .btn-submit:hover { filter: brightness(1.05); }
-        .btn:disabled { background: #cfd8dc; color: #90a4ae; box-shadow: none; transform: translateY(4px); }
+        
+        /* 新增：解釋按鈕樣式 (紫色) */
+        .btn-explain { background: var(--explain-color); }
+        .btn-explain:hover { filter: brightness(1.1); }
+
+        .btn:disabled { background: #cfd8dc; color: #90a4ae; box-shadow: none; transform: translateY(4px); cursor: not-allowed; }
 
         #messageArea { min-height: 20px; text-align: center; }
         .msg-text { font-size: 0.9rem; font-weight: 700; margin: 2px 0; }
@@ -287,8 +292,9 @@
         <div id="messageArea">
             <div class="msg-text" id="message"></div>
         </div>
-        <div class="controls">
+        <div class="controls" id="controlsArea">
             <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重來</button>
+            <button class="btn btn-explain" id="explainBtn" onclick="openExplanation()" disabled style="display:none;">解釋</button>
             <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>載入中...</button>
         </div>
     </div>
@@ -296,7 +302,7 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 6.4 (Fix Title) | 2026.01.25</span>
+    <span>Ver 6.5 (Bible Study) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
@@ -381,9 +387,6 @@
     function toggleLanguage() {
         currentLang = (currentLang === 'zh') ? 'en' : 'zh';
         
-        // 切換語言時的邏輯：
-        // 中文 -> 預設順序
-        // 英文 -> 強制隨機 (隱藏按鈕在 updateUIText 處理)
         if (currentLang === 'zh') {
             isRandomMode = false; 
         } else {
@@ -415,13 +418,23 @@
         document.getElementById('scoreDisplay').innerText = t.scorePrefix + currentScore;
         document.getElementById('correctionLabel').innerText = t.correctLabel;
         
-        // --- 修改點 2：英文版隱藏模式按鈕 ---
+        // --- 介面調整邏輯 ---
         const modeBtn = document.getElementById('modeBtn');
+        const explainBtn = document.getElementById('explainBtn');
+        const controlsArea = document.getElementById('controlsArea');
+
         if (currentLang === 'en') {
+            // 英文模式：隱藏模式按鈕，隱藏解釋按鈕，雙欄佈局
             modeBtn.style.display = 'none';
+            explainBtn.style.display = 'none';
+            controlsArea.style.gridTemplateColumns = '1fr 2fr';
         } else {
+            // 中文模式：顯示模式按鈕，顯示解釋按鈕，三欄佈局
             modeBtn.style.display = 'inline-block';
             modeBtn.innerText = isRandomMode ? t.modeRandom : t.modeSeq;
+            explainBtn.style.display = 'inline-block';
+            explainBtn.innerText = "解釋";
+            controlsArea.style.gridTemplateColumns = '1fr 1fr 2fr';
         }
         
         hideCorrection();
@@ -448,20 +461,13 @@
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
                 
-                // --- 修改點 1：更聰明的解析邏輯 ---
-                // 先檢查是否有 " : /" (新中文格式的特徵)
                 if (line.includes(" : /")) {
-                    // 中文新格式：用 " : /" 來切分標題和內容
-                    // 這樣就算標題內有冒號 (如 11:29) 也不會被切斷
                     const splitIdx = line.indexOf(" : /");
                     const ref = line.substring(0, splitIdx).trim();
-                    const contentRaw = line.substring(splitIdx + 4).trim(); // +4 是為了跳過 " : /"
-                    
+                    const contentRaw = line.substring(splitIdx + 4).trim();
                     const segments = contentRaw.split('/').map(s => s.trim()).filter(s => s.length > 0);
                     if (segments.length > 0) rawVersesData.push({ ref, segments });
-                    
                 } else {
-                    // 英文版或舊格式：維持原本的邏輯
                     const parts = line.split(':');
                     if (parts.length >= 2) {
                         let ref = parts[0].trim();
@@ -519,12 +525,62 @@
         checkBtn.onclick = checkAnswer;
         checkBtn.style.background = "var(--primary-blue)";
         
+        // 重置解釋按鈕
+        const explainBtn = document.getElementById('explainBtn');
+        explainBtn.disabled = true;
+        
         currentSegments = [...verseObj.segments];
         shuffledSegments = [...verseObj.segments];
         playerAnswer = [];
         shuffleArray(shuffledSegments);
         renderZones();
     }
+
+    // --- 新增：解析與開啟解釋連結功能 ---
+    function getExplanationParams(fullRef) {
+        // 格式範例: "第1週 (馬太福音 11:28)"
+        // 1. 取出括號內的內容 -> "馬太福音 11:28"
+        const match = fullRef.match(/\((.*?)\)/);
+        if (!match) return null;
+        
+        const coreRef = match[1]; 
+        
+        // 2. 找出書卷名與章節的分界 (最後一個空格)
+        const lastSpaceIndex = coreRef.lastIndexOf(' ');
+        if (lastSpaceIndex === -1) return null;
+        
+        const book = coreRef.substring(0, lastSpaceIndex).trim(); // "馬太福音"
+        const chapVerse = coreRef.substring(lastSpaceIndex + 1).trim(); // "11:28"
+        
+        // 3. 分割章與節
+        const [chap, versePart] = chapVerse.split(':');
+        if (!chap || !versePart) return null;
+        
+        // 4. 處理節數範圍 (例如 28 或 18-19)
+        let start = versePart;
+        let end = versePart;
+        
+        if (versePart.includes('-')) {
+            const parts = versePart.split('-');
+            start = parts[0];
+            end = parts[1];
+        }
+        
+        return { book, chap, start, end };
+    }
+
+    function openExplanation() {
+        const verseObj = gameVersesData[currentVerseIndex % gameVersesData.length];
+        const params = getExplanationParams(verseObj.ref);
+        
+        if (params) {
+            const url = `https://cokcok1.github.io/bible-ai2/index.html?book=${params.book}&chap=${params.chap}&start=${params.start}&end=${params.end}`;
+            window.open(url, '_blank');
+        } else {
+            alert("無法開啟解釋：經文格式不支援");
+        }
+    }
+    // ------------------------------------
 
     function resetRound() {
         shuffledSegments = shuffledSegments.concat(playerAnswer);
@@ -584,6 +640,7 @@
         
         const answerZone = document.getElementById('answerZone');
         const checkBtn = document.getElementById('checkBtn');
+        const explainBtn = document.getElementById('explainBtn');
         
         if (isCorrect) {
             currentScore++;
@@ -593,6 +650,10 @@
             checkBtn.innerText = t.nextLevel;
             checkBtn.style.background = "var(--success-color)"; 
             checkBtn.onclick = nextLevel;
+            
+            // 答對啟用解釋按鈕
+            explainBtn.disabled = false;
+            
             triggerConfetti();
         } else {
             lives--;
@@ -605,6 +666,10 @@
             checkBtn.innerText = t.nextQuestion;
             checkBtn.style.background = "#ef5350"; 
             checkBtn.onclick = nextLevel; 
+            
+            // 答錯啟用解釋按鈕 (方便學習)
+            explainBtn.disabled = false;
+
             setTimeout(() => { answerZone.classList.remove('wrong'); }, 1000);
             
             if (lives <= 0) {
