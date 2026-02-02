@@ -235,6 +235,19 @@
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-card { background: #fff; padding: 30px; border-radius: 30px; text-align: center; width: 85%; max-width: 350px; border: 5px solid var(--primary-blue); box-shadow: 0 10px 20px rgba(0,0,0,0.1); animation: popIn 0.3s; }
         
+        /* 彈窗按鈕群組樣式 */
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .modal-actions .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            flex: 1; /* 均分寬度 */
+        }
+        
         .watermark { 
             position: fixed; 
             bottom: 5px; 
@@ -298,14 +311,15 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 6.6 (Auto Save) | 2025.12.26</span>
+    <span>Ver 6.7 (Game Over Choice) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
     <div class="modal-card">
         <h2 style="color:var(--primary-dark); margin-top:0;" id="modalTitle">TITLE</h2>
         <p id="modalText" style="color:#666; font-size:1.1rem; margin-bottom:20px;">Text</p>
-        <button class="btn btn-submit" id="modalBtn" style="width:100%" onclick="handleModalAction()">繼續玩</button>
+        <div class="modal-actions" id="modalActions">
+            </div>
     </div>
 </div>
 
@@ -335,7 +349,10 @@
                 langBtnText: "English", 
                 loadEmpty: "請先選詞語喔！加油！",
                 modeRandom: "🔀 隨機",
-                modeSeq: "🔢 順序"
+                modeSeq: "🔢 順序",
+                // 新增 Game Over 按鈕文字
+                btnRestartAll: "從頭開始",
+                btnContinue: "繼續挑戰"
             }
         },
         en: {
@@ -362,7 +379,9 @@
                 langBtnText: "繁體中文", 
                 loadEmpty: "Please select words first!",
                 modeRandom: "🔀 Random",
-                modeSeq: "🔢 Order"
+                modeSeq: "🔢 Order",
+                btnRestartAll: "Restart All",
+                btnContinue: "Continue"
             }
         }
     };
@@ -375,58 +394,49 @@
     
     let currentScore = 0;
     let lives = 5; 
-    let currentVerseIndex = 0; // 遊戲當前指針
-    
-    // --- 新增：獨立變數記錄「順序模式」的進度 ---
+    let currentVerseIndex = 0; 
     let savedSeqIndex = 0; 
 
     let currentSegments = []; 
     let shuffledSegments = []; 
     let playerAnswer = []; 
 
-    // --- Local Storage 存取函數 ---
     function loadSavedData() {
         const savedScore = localStorage.getItem('bibleGame_score');
         const savedIndex = localStorage.getItem('bibleGame_seqIndex');
-        
-        if (savedScore !== null) {
-            currentScore = parseInt(savedScore, 10);
-        }
-        if (savedIndex !== null) {
-            savedSeqIndex = parseInt(savedIndex, 10);
-        }
+        if (savedScore !== null) currentScore = parseInt(savedScore, 10);
+        if (savedIndex !== null) savedSeqIndex = parseInt(savedIndex, 10);
     }
 
     function saveProgress() {
         localStorage.setItem('bibleGame_score', currentScore);
-        // 只在順序模式下更新存檔進度
         if (!isRandomMode) {
-            // 存下一題的 Index (所以 +1)，這樣下次打開直接玩下一題
-            // 這裡我們存「當前正確答完的 Index」比較好，或者存「下一題」。
-            // 邏輯：答對了 -> savedSeqIndex 增加 -> 存入
             localStorage.setItem('bibleGame_seqIndex', savedSeqIndex);
         }
     }
 
-    function resetScoreData() {
+    // 重置所有 (點擊「從頭開始」)
+    function resetAllProgress() {
+        currentScore = 0;
+        savedSeqIndex = 0; // 進度歸零
+        localStorage.setItem('bibleGame_score', 0);
+        localStorage.setItem('bibleGame_seqIndex', 0);
+    }
+
+    // 只重置分數 (點擊「繼續挑戰」)
+    function resetScoreOnly() {
         currentScore = 0;
         localStorage.setItem('bibleGame_score', 0);
-        // 注意：不重置 bibleGame_seqIndex，讓玩家保留進度
+        // savedSeqIndex 保持不變
     }
-    // ----------------------------
 
     function toggleLanguage() {
         currentLang = (currentLang === 'zh') ? 'en' : 'zh';
-        
         if (currentLang === 'zh') {
             isRandomMode = false; 
         } else {
             isRandomMode = true;  
         }
-        
-        // 切換語言時，重新載入分數（保持分數一致性）
-        // 或者是想分開計分？通常保持累積比較有成就感
-        // 這裡維持讀取全域分數
         loadSavedData();
         lives = 5;
         updateUIText();
@@ -435,7 +445,6 @@
 
     function toggleMode() {
         isRandomMode = !isRandomMode;
-        // 切換模式不重置分數，只重置生命
         lives = 5;
         updateUIText();
         prepareGameData();
@@ -517,9 +526,7 @@
             if (rawVersesData.length === 0) throw new Error('No Data');
             console.log(`Loaded ${rawVersesData.length} verses.`);
             
-            // 資料載入後，讀取存檔
             loadSavedData();
-            
             prepareGameData();
             initGame();
         } catch (error) {
@@ -535,25 +542,20 @@
         gameVersesData = [...rawVersesData];
         if (isRandomMode) {
             shuffleArray(gameVersesData);
-            // 隨機模式下，指針隨機（或者從0開始因為陣列已經亂了）
             currentVerseIndex = 0; 
         } else {
-            // 順序模式下，使用存檔的指針
             currentVerseIndex = savedSeqIndex;
         }
     }
 
     function initGame() {
-        // 更新分數顯示 (因為可能剛讀取存檔)
         updateUI(); 
-        
         document.getElementById('checkBtn').disabled = false;
         loadLevel();
     }
 
     function loadLevel() {
         const t = CONFIG[currentLang].ui;
-        // 確保 Index 不會超出範圍 (循環播放)
         const safeIndex = currentVerseIndex % gameVersesData.length;
         const verseObj = gameVersesData[safeIndex];
         
@@ -683,15 +685,12 @@
             checkBtn.style.background = "var(--success-color)"; 
             checkBtn.onclick = nextLevel;
             
-            // 答對啟用解釋
             explainBtn.disabled = false;
             
-            // --- 儲存進度 (分數 + 順序進度) ---
             if (!isRandomMode) {
-                savedSeqIndex++; // 順序模式下，進度+1
+                savedSeqIndex++; 
             }
             saveProgress(); 
-            // ----------------------------------
             
             triggerConfetti();
         } else {
@@ -706,18 +705,12 @@
             checkBtn.style.background = "#ef5350"; 
             checkBtn.onclick = nextLevel; 
             
-            // 答錯啟用解釋
             explainBtn.disabled = false;
-
-            // 答錯不存進度 (除非我們想讓答錯也算過關，通常不存)
-            // 但分數可能減少了(如果我們有扣分機制)，這裡只更新分數(如果需要)
-            // 這裡因為只有加分沒有扣分，所以不用特別存
 
             setTimeout(() => { answerZone.classList.remove('wrong'); }, 1000);
             
             if (lives <= 0) {
-                let msg = t.gameOverMsg.replace('{score}', currentScore);
-                showModal(t.gameOverTitle, msg, t.restart);
+                showGameOverModal();
             }
         }
     }
@@ -754,26 +747,65 @@
     
     function triggerConfetti() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#64b5f6', '#4db6ac', '#fff176', '#ffb74d'] }); }
     
-    function showModal(title, text, btnText) { 
-        document.getElementById('modalTitle').innerText = title; 
-        document.getElementById('modalText').innerHTML = text; 
-        document.getElementById('modalBtn').innerText = btnText;
-        document.getElementById('gameModal').style.display = 'flex'; 
-    }
-    
-    function handleModalAction() { 
-        document.getElementById('gameModal').style.display = 'none'; 
+    // --- 新增：顯示 Game Over 彈窗邏輯 ---
+    function showGameOverModal() {
+        const t = CONFIG[currentLang].ui;
+        const title = t.gameOverTitle;
+        const msg = t.gameOverMsg.replace('{score}', currentScore);
         
-        // Game Over 重置
-        resetScoreData(); // 歸零分數
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalText').innerHTML = msg;
+        
+        const actionsDiv = document.getElementById('modalActions');
+        actionsDiv.innerHTML = ''; // 清空舊按鈕
+
+        if (isRandomMode) {
+            // 隨機模式：只顯示「重新開始」
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-submit';
+            btn.innerText = t.restart;
+            btn.onclick = handleRestartAll;
+            actionsDiv.appendChild(btn);
+        } else {
+            // 順序模式：顯示「從頭開始」和「繼續挑戰」
+            
+            // 按鈕 1: 從頭開始 (灰色)
+            const btnRestart = document.createElement('button');
+            btnRestart.className = 'btn btn-reset';
+            btnRestart.innerText = t.btnRestartAll;
+            btnRestart.onclick = handleRestartAll;
+            
+            // 按鈕 2: 繼續挑戰 (紫色)
+            const btnContinue = document.createElement('button');
+            btnContinue.className = 'btn btn-explain'; // 借用紫色樣式
+            btnContinue.innerText = t.btnContinue;
+            btnContinue.onclick = handleContinue;
+            
+            actionsDiv.appendChild(btnRestart);
+            actionsDiv.appendChild(btnContinue);
+        }
+        
+        document.getElementById('gameModal').style.display = 'flex';
+    }
+
+    // 處理：從頭開始
+    function handleRestartAll() {
+        document.getElementById('gameModal').style.display = 'none';
+        resetAllProgress(); // 清除進度
         lives = 5;
-        
-        // 恢復數據 (進度不歸零，所以這裡再次 prepare)
-        prepareGameData();
-        initGame(); 
+        prepareGameData(); // 重新讀取 (會回到 index 0)
+        initGame();
+    }
+
+    // 處理：繼續挑戰
+    function handleContinue() {
+        document.getElementById('gameModal').style.display = 'none';
+        resetScoreOnly(); // 只清除分數
+        lives = 5;
+        prepareGameData(); // 保持 savedSeqIndex
+        initGame();
     }
     
-    // 啟動
     updateUIText();
     loadVersesFromFile();
 </script>
