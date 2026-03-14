@@ -92,7 +92,6 @@
             white-space: nowrap;
         }
         .small-btn:active { transform: translateY(2px); box-shadow: none; }
-
         .mode-btn { background-color: #e3f2fd; border-style: dashed; }
 
         .score-board { 
@@ -108,20 +107,66 @@
 
         .verse-card {
             text-align: center;
-            min-height: 30px;
+            min-height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
+        /* --- 新增：導航箭嘴樣式 --- */
+        .verse-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .nav-arrow {
+            background: #f1f8e9;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+            padding: 0;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        
+        .nav-arrow:hover:not(:disabled) {
+            background: var(--primary-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .nav-arrow:active:not(:disabled) { transform: scale(0.95); }
+        .nav-arrow:disabled {
+            border-color: #cfd8dc;
+            color: #cfd8dc;
+            background: #f7f9fc;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
         .verse-ref {
+            flex: 1;
             font-size: 1.3rem; 
             font-weight: 900;
             color: var(--primary-blue);
             text-shadow: 2px 2px 0 #fff;
             margin: 0;
             line-height: 1.2;
+            text-align: center;
         }
+        /* -------------------------- */
 
         .zone-label {
             color: var(--primary-blue);
@@ -175,33 +220,32 @@
         .word-brick:active { transform: translateY(2px); border-bottom-width: 2px; margin-top: 2px; }
         .word-brick:hover { background-color: #e3f2fd; }
 
+        /* 重溫模式下的積木樣式（不可點擊） */
+        .word-brick.review-mode {
+            cursor: default;
+            pointer-events: none; /* 防止任何點擊或懸浮特效 */
+        }
+
         .footer-section { flex: 0 0 auto; margin-top: 5px; padding-bottom: 5px; }
 
-        /* 修改：為容納4個按鈕調整間距和內邊距 */
         .controls { 
             display: grid; 
-            grid-template-columns: 1fr 1fr 1fr 2fr; 
-            gap: 8px; 
+            grid-template-columns: 1fr 2fr; 
+            gap: 10px; 
         }
 
         .btn {
             border: none;
-            padding: 10px 5px; /* 縮小內邊距以適應小螢幕 */
-            font-size: 1rem; /* 稍微縮小字體 */
+            padding: 12px;
+            font-size: 1.1rem;
             font-weight: 900;
-            border-radius: 16px;
+            border-radius: 20px;
             cursor: pointer;
             color: white;
             font-family: 'Zen Maru Gothic', sans-serif;
             box-shadow: 0 4px 0 rgba(0,0,0,0.1);
             position: relative; 
             z-index: 10;
-        }
-
-        /* 針對超小螢幕的微調 */
-        @media (max-width: 380px) {
-            .btn { font-size: 0.85rem; padding: 8px 2px; }
-            .controls { gap: 5px; }
         }
 
         .btn:active { transform: translateY(4px); box-shadow: none; }
@@ -248,11 +292,7 @@
             margin-top: 15px;
             justify-content: center;
         }
-        .modal-actions .btn {
-            padding: 10px 20px;
-            font-size: 1rem;
-            flex: 1; 
-        }
+        .modal-actions .btn { padding: 10px 20px; font-size: 1rem; flex: 1; }
         
         .watermark { 
             position: fixed; 
@@ -286,7 +326,11 @@
             <div class="score-board" id="scoreDisplay">星星: 0</div>
     </div>
         <div class="verse-card">
-            <div class="verse-ref" id="referenceDisplay">Loading...</div>
+            <div class="verse-nav">
+                <button class="nav-arrow" id="prevArrow" onclick="prevVerse()">◀</button>
+                <div class="verse-ref" id="referenceDisplay">Loading...</div>
+                <button class="nav-arrow" id="nextArrow" onclick="nextVerse()">▶</button>
+            </div>
         </div>
         <div id="correctionBox" class="correction-box">
             <span id="correctionLabel">💡 正確答案：</span><span id="correctionText"></span>
@@ -308,7 +352,6 @@
             <div class="msg-text" id="message"></div>
         </div>
         <div class="controls" id="controlsArea">
-            <button class="btn btn-reset" id="prevBtn" onclick="prevLevel()" disabled>上一題</button>
             <button class="btn btn-reset" id="resetBtn" onclick="resetRound()" disabled>重來</button>
             <button class="btn btn-explain" id="explainBtn" onclick="openExplanation()" disabled style="display:none;">解釋</button>
             <button class="btn btn-submit" id="checkBtn" onclick="checkAnswer()" disabled>載入中...</button>
@@ -318,15 +361,14 @@
 
 <div class="watermark">
     Powered by Gemini
-    <span>Ver 6.8 (Review Button) | 2025.12.26</span>
+    <span>Ver 6.8 (History Review) | 2025.12.26</span>
 </div>
 
 <div class="modal-overlay" id="gameModal">
     <div class="modal-card">
         <h2 style="color:var(--primary-dark); margin-top:0;" id="modalTitle">TITLE</h2>
         <p id="modalText" style="color:#666; font-size:1.1rem; margin-bottom:20px;">Text</p>
-        <div class="modal-actions" id="modalActions">
-        </div>
+        <div class="modal-actions" id="modalActions"></div>
     </div>
 </div>
 
@@ -337,7 +379,6 @@
             ui: {
                 yourArrangement: "☁️ 你的排列",
                 wordBricks: "🦕 詞語積木",
-                prevLevel: "上一題",  // 新增翻譯
                 reset: "重來",
                 check: "完成！",
                 loading: "載入中...",
@@ -359,7 +400,9 @@
                 modeRandom: "🔀 隨機",
                 modeSeq: "🔢 順序",
                 btnRestartAll: "從頭開始",
-                btnContinue: "繼續挑戰"
+                btnContinue: "繼續挑戰",
+                // 新增：重溫模式按鈕文字
+                returnToLatest: "返回最新 ➔"
             }
         },
         en: {
@@ -367,7 +410,6 @@
             ui: {
                 yourArrangement: "☁️ Your Arrangement",
                 wordBricks: "🦕 Word Bricks",
-                prevLevel: "Prev",   // 新增翻譯
                 reset: "Reset",
                 check: "Check!",
                 loading: "Loading...",
@@ -389,13 +431,15 @@
                 modeRandom: "🔀 Random",
                 modeSeq: "🔢 Order",
                 btnRestartAll: "Restart All",
-                btnContinue: "Continue"
+                btnContinue: "Continue",
+                returnToLatest: "Back to Current ➔"
             }
         }
     };
 
     let currentLang = 'zh'; 
     let isRandomMode = false; 
+    let isReviewMode = false; // 是否在重溫模式
 
     let rawVersesData = []; 
     let gameVersesData = []; 
@@ -404,6 +448,7 @@
     let lives = 5; 
     let currentVerseIndex = 0; 
     let savedSeqIndex = 0; 
+    let highestReachedIndex = 0; // 當前能到達的最高關卡
 
     let currentSegments = []; 
     let shuffledSegments = []; 
@@ -460,7 +505,6 @@
         const t = CONFIG[currentLang].ui;
         document.getElementById('zoneLabelAnswer').innerText = t.yourArrangement;
         document.getElementById('zoneLabelOption').innerText = t.wordBricks;
-        document.getElementById('prevBtn').innerText = t.prevLevel; // 更新上一題文字
         document.getElementById('resetBtn').innerText = t.reset;
         document.getElementById('checkBtn').innerText = t.loading; 
         document.getElementById('langBtn').innerText = t.langBtnText;
@@ -471,17 +515,16 @@
         const explainBtn = document.getElementById('explainBtn');
         const controlsArea = document.getElementById('controlsArea');
 
-        // 佈局調整，容納新的上一題按鈕
         if (currentLang === 'en') {
             modeBtn.style.display = 'none';
             explainBtn.style.display = 'none';
-            controlsArea.style.gridTemplateColumns = '1fr 1fr 2fr'; // Prev, Reset, Check
+            controlsArea.style.gridTemplateColumns = '1fr 2fr';
         } else {
             modeBtn.style.display = 'inline-block';
             modeBtn.innerText = isRandomMode ? t.modeRandom : t.modeSeq;
             explainBtn.style.display = 'inline-block';
             explainBtn.innerText = "解釋";
-            controlsArea.style.gridTemplateColumns = '1fr 1fr 1fr 2.2fr'; // Prev, Reset, Explain, Check
+            controlsArea.style.gridTemplateColumns = '1fr 1fr 2fr';
         }
         
         hideCorrection();
@@ -507,7 +550,6 @@
             
             lines.forEach(line => {
                 if (!line || line.trim() === "") return;
-                
                 if (line.includes(" : /")) {
                     const splitIdx = line.indexOf(" : /");
                     const ref = line.substring(0, splitIdx).trim();
@@ -550,8 +592,10 @@
         if (isRandomMode) {
             shuffleArray(gameVersesData);
             currentVerseIndex = 0; 
+            highestReachedIndex = 0;
         } else {
             currentVerseIndex = savedSeqIndex;
+            highestReachedIndex = savedSeqIndex;
         }
     }
 
@@ -570,35 +614,76 @@
         showMessage("");
         hideCorrection();
         
-        document.getElementById('answerZone').className = "zone answer-zone";
+        // 判斷是否為重溫模式 (小於當前最高進度)
+        isReviewMode = currentVerseIndex < highestReachedIndex;
+        
+        const answerZone = document.getElementById('answerZone');
         const checkBtn = document.getElementById('checkBtn');
-        checkBtn.innerText = t.check;
-        checkBtn.onclick = checkAnswer;
-        checkBtn.style.background = "var(--primary-blue)";
-        
         const explainBtn = document.getElementById('explainBtn');
-        explainBtn.disabled = true;
+        const resetBtn = document.getElementById('resetBtn');
+
+        if (isReviewMode) {
+            // --- 重溫模式 ---
+            currentSegments = [...verseObj.segments];
+            playerAnswer = [...verseObj.segments]; // 自動排好正確答案
+            shuffledSegments = []; 
+            
+            answerZone.className = "zone answer-zone correct";
+            
+            checkBtn.innerText = t.returnToLatest;
+            checkBtn.onclick = jumpToLatest;
+            checkBtn.style.background = "var(--success-color)";
+            checkBtn.disabled = false;
+            
+            explainBtn.disabled = false; // 允許看解釋
+            resetBtn.disabled = true;    // 關閉重來
+            
+            renderZones();
+        } else {
+            // --- 正常遊玩模式 ---
+            answerZone.className = "zone answer-zone";
+            
+            checkBtn.innerText = t.check;
+            checkBtn.onclick = checkAnswer;
+            checkBtn.style.background = "var(--primary-blue)";
+            
+            explainBtn.disabled = true;
+            
+            currentSegments = [...verseObj.segments];
+            shuffledSegments = [...verseObj.segments];
+            playerAnswer = [];
+            shuffleArray(shuffledSegments);
+            renderZones();
+        }
         
-        // 控制「上一題」按鈕是否可以按 (如果已經是第0題，就不能再退)
-        const prevBtn = document.getElementById('prevBtn');
-        prevBtn.disabled = (currentVerseIndex === 0);
-        
-        currentSegments = [...verseObj.segments];
-        shuffledSegments = [...verseObj.segments];
-        playerAnswer = [];
-        shuffleArray(shuffledSegments);
-        renderZones();
+        updateNavArrows();
     }
 
-    // --- 新增：上一題功能 ---
-    function prevLevel() {
+    // --- 左右導航按鈕邏輯 ---
+    function prevVerse() {
         if (currentVerseIndex > 0) {
             currentVerseIndex--;
             loadLevel();
-            updateUI();
         }
     }
-    // ----------------------
+
+    function nextVerse() {
+        if (currentVerseIndex < highestReachedIndex) {
+            currentVerseIndex++;
+            loadLevel();
+        }
+    }
+
+    function jumpToLatest() {
+        currentVerseIndex = highestReachedIndex;
+        loadLevel();
+    }
+
+    function updateNavArrows() {
+        document.getElementById('prevArrow').disabled = (currentVerseIndex <= 0);
+        document.getElementById('nextArrow').disabled = (currentVerseIndex >= highestReachedIndex);
+    }
+    // -------------------------
 
     function getExplanationParams(fullRef) {
         const match = fullRef.match(/\((.*?)\)/);
@@ -638,6 +723,7 @@
     }
 
     function resetRound() {
+        if (isReviewMode) return;
         shuffledSegments = shuffledSegments.concat(playerAnswer);
         playerAnswer = [];
         renderZones();
@@ -654,10 +740,11 @@
         
         if (playerAnswer.length === 0) {
             answerZone.innerHTML = `<div class="answer-placeholder">${t.placeholder}</div>`;
-            resetBtn.disabled = true;
+            if(!isReviewMode) resetBtn.disabled = true;
         } else {
-            resetBtn.disabled = false;
+            if(!isReviewMode) resetBtn.disabled = false;
         }
+        
         playerAnswer.forEach((text, index) => { answerZone.appendChild(createBrick(text, true, index)); });
         shuffledSegments.forEach((text, index) => { optionZone.appendChild(createBrick(text, false, index)); });
     }
@@ -666,7 +753,15 @@
         let div = document.createElement('div');
         div.className = 'word-brick';
         div.innerText = text;
+        
+        // 若為重溫模式，鎖定點擊效果
+        if (isReviewMode) {
+            div.classList.add('review-mode');
+        }
+        
         div.onclick = function() {
+            if (isReviewMode) return; // 鎖定點擊
+            
             if (isAnswerZone) {
                 const word = playerAnswer[index];
                 playerAnswer.splice(index, 1);
@@ -708,15 +803,14 @@
             
             explainBtn.disabled = false;
             
-            // --- 修改：保護最遠進度 ---
-            // 確保只有當前挑戰的題數大於或等於歷史最遠進度時，才更新保存進度
+            // 推進最高進度
             if (!isRandomMode) {
-                if (currentVerseIndex >= savedSeqIndex) {
-                    savedSeqIndex = currentVerseIndex + 1; 
-                }
+                savedSeqIndex = Math.max(savedSeqIndex, currentVerseIndex + 1);
+                highestReachedIndex = savedSeqIndex;
+            } else {
+                highestReachedIndex = Math.max(highestReachedIndex, currentVerseIndex + 1);
             }
             saveProgress(); 
-            // ------------------------
             
             triggerConfetti();
         } else {
@@ -820,8 +914,6 @@
         document.getElementById('gameModal').style.display = 'none';
         resetScoreOnly(); 
         lives = 5;
-        // 如果想要 Game Over 後從「最新進度」繼續，而不是「剛剛失敗的那題」
-        // currentVerseIndex = savedSeqIndex; // (可選)
         prepareGameData(); 
         initGame();
     }
